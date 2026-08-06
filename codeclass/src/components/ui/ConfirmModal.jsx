@@ -10,6 +10,8 @@ export default function ConfirmModal({
   cancelText = "انصراف",
   onConfirm,
   onCancel,
+  danger = true,
+  showCancel = true,
 }) {
   if (!open) return null;
 
@@ -26,8 +28,8 @@ export default function ConfirmModal({
         {/* Header */}
         <div className="flex items-start justify-between p-5 pb-0">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <FiAlertTriangle className="text-red-500" size={22} />
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${danger ? "bg-red-100" : "bg-blue-100"}`}>
+              <FiAlertTriangle className={danger ? "text-red-500" : "text-blue-500"} size={22} />
             </div>
             <div>
               <h3 className="font-bold text-gray-800 text-base">{title}</h3>
@@ -58,7 +60,9 @@ export default function ConfirmModal({
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-medium transition"
+            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-medium transition ${
+              danger ? "bg-red-500 hover:bg-red-600" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             {confirmText}
           </button>

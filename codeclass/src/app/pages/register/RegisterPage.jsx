@@ -5,25 +5,23 @@ import Link from 'next/link';
 import { FaLaptopCode } from "react-icons/fa";
 
 export default function RegisterPage() {
-  const [activeTab, setActiveTab] = useState('provider'); // provider یا participant
+  const [activeTab, setActiveTab] = useState('presenter'); 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-10 via-blue-100 to-blue-80 p-4">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[680px]">
 
-        {/* سمت راست - فرم */}
+        {/* total form */}
         <div className="lg:w-1/2 p-8 lg:p-10 flex flex-col justify-center" dir="rtl">
           
-          {/* عنوان */}
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
-              ورود به حساب کاربری
+              ایجاد حساب کاربری
             </h1>
             
-            {/* آیکون + نام */}
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-blue-600 font-semibold text-xl">CodeClass</span>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
@@ -32,18 +30,18 @@ export default function RegisterPage() {
             </div>
           </div> 
 
-          {/* تب‌ها */}
+          {/* tabs */}
           <div className="flex border-b border-gray-200 mb-7">
             <button
-              onClick={() => setActiveTab('provider')}
+              onClick={() => setActiveTab('presenter')}
               className={`flex-1 py-3 text-center font-medium transition-colors relative ${
-                activeTab === 'provider'
+                activeTab === 'presenter'
                   ? 'text-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               ارائه‌دهنده
-              {activeTab === 'provider' && (
+              {activeTab === 'presenter' && (
                 <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-600 rounded-full"></span>
               )}
             </button>
@@ -62,10 +60,9 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          {/* فرم */}
+          {/* form */}
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             
-            {/* نام و نام خانوادگی */}
             <div className="relative">
               <input
                 type="text"
@@ -79,7 +76,6 @@ export default function RegisterPage() {
               </span>
             </div>
 
-            {/* ایمیل */}
             <div className="relative">
               <input
                 type="email"
@@ -93,7 +89,6 @@ export default function RegisterPage() {
               </span>
             </div>
 
-            {/* شماره تماس */}
             <div className="relative">
               <input
                 type="tel"
@@ -108,20 +103,17 @@ export default function RegisterPage() {
               </span>
             </div>
 
-            {/* رمز عبور */}
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="رمز عبور"
                 className="w-full px-4 py-3 pr-11 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
-              {/* آیکون قفل */}
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </span>
-              {/* آیکون چشم */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -140,7 +132,6 @@ export default function RegisterPage() {
               </button>
             </div>
 
-            {/* تکرار رمز عبور */}
             <div className="relative">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -170,7 +161,6 @@ export default function RegisterPage() {
               </button>
             </div>
 
-            {/* مرا به‌خاطر بسپار */}
             <div className="flex items-center gap-2 pt-1">
               <input
                 type="checkbox"
@@ -184,7 +174,6 @@ export default function RegisterPage() {
               </label>
             </div>
 
-            {/* دکمه ثبت‌نام */}
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-2"
@@ -193,7 +182,6 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          {/* لینک ورود */}
           <p className="text-center mt-7 text-gray-600 text-sm">
             حساب کاربری دارید؟{' '}
             <Link href="/login" className="text-blue-600 font-medium hover:underline">
@@ -202,8 +190,8 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* سمت چپ - تصویر */}
-        <div className="lg:w-1/2 relative min-h-[280px] lg:min-h-full">
+        {/* image */}
+        <div className="hidden lg:block lg:w-1/2 relative min-h-full">
           <img
             src="/login.png"
             alt="CodeClass"

@@ -2,13 +2,15 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Editor from "@monaco-editor/react";
-import {
-  FiMic, FiMicOff, FiVideo, FiVideoOff, FiMessageSquare, FiUsers, FiSend,
-  FiPhoneOff, FiMoreVertical, FiType, FiEdit2, FiTrash2, FiRotateCcw, FiRotateCw,
-  FiDownload, FiSettings, FiFileText, FiCode, FiUpload, FiFile, FiX, FiMaximize,
-  FiPlay, FiPause, FiCircle, FiSquare
-} from "react-icons/fi";
+import { FiUpload, FiFileText, FiX } from "react-icons/fi";
+
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import Toolbar from "./components/Toolbar";
+import Whiteboard from "./components/Whiteboard";
+import IDEPanel from "./components/IDEPanel";
+import Sidebar from "./components/Sidebar";
+import BottomBar from "./components/BottomBar";
+import SettingsModal from "./components/SettingsModal";
 
 export default function PresenterClassroom() {
   const router = useRouter();
@@ -41,6 +43,9 @@ export default function PresenterClassroom() {
     { id: 4, name: "مریم حسینی", mic: false },
   ]);
 
+  const [fileModal, setFileModal] = useState(null); 
+  const [newFileOpen, setNewFileOpen] = useState(false);
+  const [newFileName, setNewFileName] = useState("");
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
   const camRef = useRef(null);
@@ -51,6 +56,8 @@ export default function PresenterClassroom() {
   const last = useRef({ x: 0, y: 0 });
   const history = useRef([]);
   const step = useRef(-1);
+  const points = useRef([]); 
+  const strokeBase = useRef(null); 
 
   const save = () => {
     const c = canvasRef.current;
@@ -95,39 +102,70 @@ export default function PresenterClassroom() {
   const start = (e) => {
     if (!["pen", "highlighter", "eraser"].includes(tool)) return;
     drawing.current = true;
-    last.current = pos(e);
+    const p = pos(e);
+    last.current = p;
+
+    if (tool === "highlighter") {
+      // ذخیره پیکسل‌های فعلی بوم (sync) برای بازگردانی بدون تیرگی
+      const c = canvasRef.current;
+      strokeBase.current = c.getContext("2d").getImageData(0, 0, c.width, c.height);
+      points.current = [p];
+    }
   };
 
   const move = (e) => {
     if (!drawing.current) return;
     const ctx = canvasRef.current.getContext("2d");
     const p = pos(e);
-    ctx.beginPath();
-    ctx.moveTo(last.current.x, last.current.y);
-    ctx.lineTo(p.x, p.y);
-    if (tool === "eraser") {
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.lineWidth = size * 5;
-      ctx.lineCap = "round";
-    } else if (tool === "highlighter") {
+
+    if (tool === "highlighter") {
+      points.current.push(p);
+
+      const base = strokeBase.current;
+      if (!base) return;
+
+      // بازگرداندن بوم به حالت قبل از این stroke (بدون async)
+      ctx.putImageData(base, 0, 0);
+
+      // کشیدن کل مسیر هایلایتر با شفافیت یکنواخت (بدون تیرگی وسط)
+      if (points.current.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(points.current[0].x, points.current[0].y);
+      for (let i = 1; i < points.current.length; i++) {
+        ctx.lineTo(points.current[i].x, points.current[i].y);
+      }
       ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = color + "55";
       ctx.lineWidth = size * 8;
-      ctx.lineCap = "square";
-    } else {
-      ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = color;
-      ctx.lineWidth = size;
       ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.stroke();
+    } else {
+      // قلم و پاک‌کن مثل قبل
+      ctx.beginPath();
+      ctx.moveTo(last.current.x, last.current.y);
+      ctx.lineTo(p.x, p.y);
+      if (tool === "eraser") {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.lineWidth = size * 5;
+        ctx.lineCap = "round";
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size;
+        ctx.lineCap = "round";
+      }
+      ctx.lineJoin = "round";
+      ctx.stroke();
+      last.current = p;
     }
-    ctx.lineJoin = "round";
-    ctx.stroke();
-    last.current = p;
   };
 
   const end = () => {
     if (drawing.current) {
       drawing.current = false;
+      points.current = [];
+      strokeBase.current = null;
       save();
     }
   };
@@ -167,6 +205,72 @@ export default function PresenterClassroom() {
       ctx.drawImage(img, 0, 0);
     };
     img.src = history.current[step.current];
+  };
+
+  // --- IDE helpers ---
+  const getLang = (name) => {
+    const ext = name.split(".").pop()?.toLowerCase();
+    const map = {
+      js: "javascript", jsx: "javascript", ts: "typescript", tsx: "typescript",
+      css: "css", scss: "scss", html: "html", json: "json", md: "markdown",
+      py: "python", java: "java", c: "c", cpp: "cpp", go: "go", rs: "rust",
+    };
+    return map[ext] || "javascript";
+  };
+
+  const addFile = () => {
+  setNewFileName("");
+  setNewFileOpen(true);        
+    };
+
+const createNewFile = () => {
+  const n = newFileName.trim();
+  if (!n) return;
+
+  if (files[n]) {
+    setNewFileOpen(false);
+    setFileModal({ type: "error", message: "فایلی با این نام وجود دارد" });
+    return;
+  }
+
+  setFiles((p) => ({ ...p, [n]: "" }));
+  setFile(n);
+  setNewFileOpen(false);
+  setNewFileName("");
+};
+
+  const requestDeleteFile = (name) => {
+    if (Object.keys(files).length <= 1) {
+      setFileModal({ type: "error", message: "حداقل یک فایل باید باقی بماند" });
+      return;
+    }
+    setFileModal({ type: "confirmDelete", name });
+  };
+
+  const confirmDeleteFile = () => {
+    const name = fileModal?.name;
+    setFiles((p) => {
+      const next = { ...p };
+      delete next[name];
+      const remaining = Object.keys(next);
+      if (file === name) setFile(remaining[0] || "");
+      return next;
+    });
+    setFileModal(null);
+  };
+
+  const uploadFiles = (e) => {
+    const list = e.target.files;
+    if (!list?.length) return;
+    Array.from(list).forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFiles((p) => ({ ...p, [f.name]: reader.result || "" }));
+        setFile(f.name);
+      };
+      reader.readAsText(f);
+    });
+    e.target.value = ""; // reset for re-upload same file
   };
 
   const toggleMic = async () => {
@@ -240,142 +344,51 @@ export default function PresenterClassroom() {
     setMessage("");
   };
 
-  const ToolBtn = ({ id, icon, title }) => (
-    <button onClick={() => setTool(id)} title={title}
-      className={`p-2 rounded-lg ${tool === id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-100"}`}>
-      {icon}
-    </button>
-  );
-
   return (
     <div className="h-screen bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
-      <header className="h-12 bg-white border-b flex items-center justify-between px-3 flex-shrink-0 z-20">
-        <div className="flex items-center gap-0.5">
-          <button onClick={undo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiRotateCcw size={15} /></button>
-          <button onClick={redo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiRotateCw size={15} /></button>
-          <div className="w-px h-5 bg-gray-200 mx-1" />
-          <ToolBtn id="pen" icon={<FiEdit2 size={15} />} title="مداد" />
-          <ToolBtn id="highlighter" icon={<FiSquare size={15} />} title="هایلایتر" />
-          <ToolBtn id="eraser" icon={<FiTrash2 size={15} />} title="پاک‌کن" />
-          <ToolBtn id="text" icon={<FiType size={15} />} title="متن" />
-          {["pen", "highlighter", "text"].includes(tool) && (
-            <div className="flex items-center gap-1 mr-1">
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-6 h-6 rounded border-0 cursor-pointer" />
-              <input type="range" min="1" max="12" value={size} onChange={(e) => setSize(+e.target.value)} className="w-14" />
-            </div>
-          )}
-          <button onClick={() => { const a = document.createElement("a"); a.href = canvasRef.current.toDataURL(); a.download = "whiteboard.png"; a.click(); }} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiDownload size={15} /></button>
-          <button onClick={toggleRec} className={`p-2 rounded-lg ${recording ? "bg-red-50 text-red-600" : "text-gray-600 hover:bg-gray-100"}`}>
-            <FiCircle size={15} className={recording ? "fill-red-600" : ""} />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-          {[
-            { id: "whiteboard", label: "وایت‌برد", icon: <FiEdit2 size={12} /> },
-            { id: "pdf", label: "PDF", icon: <FiFileText size={12} />, file: true },
-            { id: "ide", label: "IDE", icon: <FiCode size={12} /> },
-          ].map((m) =>
-            m.file ? (
-              <label key={m.id} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${mode === m.id ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"}`}>
-                {m.icon} {m.label}
-                <input type="file" accept="application/pdf" className="hidden" onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) { setPdfUrl(URL.createObjectURL(f)); setMode("pdf"); }
-                }} />
-              </label>
-            ) : (
-              <button key={m.id} onClick={() => setMode(m.id)} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium ${mode === m.id ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"}`}>
-                {m.icon} {m.label}
-              </button>
-            )
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button onClick={() => setSettingsOpen(true)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiSettings size={15} /></button>
-          <button onClick={() => router.push("/presenter/dashboard")} className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-medium">
-            <FiPhoneOff size={13} /> <span className="hidden sm:inline">خروج از کلاس</span>
-          </button>
-        </div>
-      </header>
+      <Toolbar
+        undo={undo}
+        redo={redo}
+        tool={tool}
+        setTool={setTool}
+        color={color}
+        setColor={setColor}
+        size={size}
+        setSize={setSize}
+        canvasRef={canvasRef}
+        recording={recording}
+        toggleRec={toggleRec}
+        mode={mode}
+        setMode={setMode}
+        setPdfUrl={setPdfUrl}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onExit={() => router.push("/presenter/dashboard")}
+      />
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className={`bg-white border-r flex flex-col flex-shrink-0 transition-all duration-300 overflow-hidden ${chatOpen ? "w-72 opacity-100" : "w-0 opacity-0 border-0"}`}>
-          <div className="p-3 border-b flex-shrink-0">
-            <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden">
-              {videoSrc ? (
-                <video ref={videoRef} src={videoSrc} className="w-full h-full object-cover" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} />
-              ) : cameraOn ? (
-                <video ref={camRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500"><FiVideo size={28} /></div>
-              )}
-              <div className="absolute bottom-1.5 left-1.5 flex gap-1">
-                {videoSrc && (
-                  <button onClick={() => { const v = videoRef.current; v.paused ? v.play() : v.pause(); }} className="p-1.5 bg-black/60 text-white rounded-lg">
-                    {playing ? <FiPause size={12} /> : <FiPlay size={12} />}
-                  </button>
-                )}
-                <button onClick={() => (videoRef.current || camRef.current)?.requestFullscreen?.()} className="p-1.5 bg-black/60 text-white rounded-lg"><FiMaximize size={12} /></button>
-                <label className="p-1.5 bg-black/60 text-white rounded-lg cursor-pointer">
-                  <FiUpload size={12} />
-                  <input type="file" accept="video/*" className="hidden" onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) { setVideoSrc(URL.createObjectURL(f)); setCameraOn(false); }
-                  }} />
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-b flex-shrink-0">
-            <div className="px-3 py-2 text-xs font-bold flex items-center gap-1.5"><FiUsers size={13} /> اعضای حاضر ({participants.length})</div>
-            <div className="max-h-44 overflow-y-auto px-1.5 pb-1.5">
-              {participants.map((p) => (
-                <div key={p.id} className="flex items-center gap-2 px-1.5 py-1.5 rounded-lg hover:bg-gray-50">
-                  <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-medium">{p.name[0]}</div>
-                  <p className="flex-1 text-[11px] font-medium truncate">{p.name}</p>
-                  <button onClick={() => setParticipants((ps) => ps.map((x) => x.id === p.id ? { ...x, mic: !x.mic } : x))} className={p.mic ? "text-green-600" : "text-red-400"}>
-                    {p.mic ? <FiMic size={12} /> : <FiMicOff size={12} />}
-                  </button>
-                  <FiMoreVertical size={12} className="text-gray-400" />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 flex flex-col min-h-0">
-            <div className="px-3 py-2 border-b text-xs font-bold">گفتگو</div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-              {messages.map((m) => (
-                <div key={m.id} className="flex gap-1.5">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[9px] flex-shrink-0">{m.name[0]}</div>
-                  <div>
-                    <div className="flex gap-1.5 text-[10px] mb-0.5">
-                      <span className={`font-medium ${m.teacher ? "text-blue-600" : "text-gray-800"}`}>{m.name}</span>
-                      <span className="text-gray-400">{m.time}</span>
-                    </div>
-                    <p className={`text-[11px] px-2.5 py-1.5 rounded-lg rounded-tr-none ${m.teacher ? "bg-blue-50 text-blue-800" : "bg-gray-50"}`}>{m.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-2.5 border-t flex gap-1.5">
-              <input value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="پیام..." className="flex-1 px-2.5 py-2 border rounded-xl text-[11px] outline-none focus:border-blue-500" />
-              <button onClick={send} className="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center"><FiSend size={13} /></button>
-            </div>
-          </div>
-        </aside>
+        <Sidebar
+          chatOpen={chatOpen}
+          videoSrc={videoSrc}
+          setVideoSrc={setVideoSrc}
+          videoRef={videoRef}
+          playing={playing}
+          setPlaying={setPlaying}
+          cameraOn={cameraOn}
+          setCameraOn={setCameraOn}
+          camRef={camRef}
+          participants={participants}
+          setParticipants={setParticipants}
+          messages={messages}
+          message={message}
+          setMessage={setMessage}
+          send={send}
+        />
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <div className="flex-1 p-3 overflow-hidden">
             <div className="h-full bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col">
               {mode === "whiteboard" && (
-                <div className="flex-1 relative">
-                  <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair"
-                    onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end} onClick={addText} />
-                </div>
+                <Whiteboard canvasRef={canvasRef} start={start} move={move} end={end} addText={addText} />
               )}
               {mode === "pdf" && (
                 pdfUrl ? <iframe src={pdfUrl} className="flex-1 w-full border-0" /> : (
@@ -386,58 +399,103 @@ export default function PresenterClassroom() {
                 )
               )}
               {mode === "ide" && (
-                <div className="flex-1 flex overflow-hidden" dir="ltr">
-                  <div className="w-40 bg-[#1e1e1e] text-gray-300 flex flex-col border-r border-gray-700">
-                    <div className="px-2 py-1.5 text-[10px] text-gray-500 border-b border-gray-700">EXPLORER</div>
-                    {Object.keys(files).map((f) => (
-                      <button key={f} onClick={() => setFile(f)} className={`flex items-center gap-1 px-2 py-1 text-[11px] text-left ${file === f ? "bg-[#37373d] text-white" : "hover:bg-[#2a2a2a]"}`}>
-                        <FiFile size={11} className="text-blue-400" /> {f}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex-1">
-                    <Editor height="100%" theme="vs-dark" language="javascript" value={files[file]}
-                      onChange={(v) => setFiles((p) => ({ ...p, [file]: v || "" }))}
-                      options={{ fontSize: 13, minimap: { enabled: false }, automaticLayout: true }} />
-                  </div>
-                </div>
+                <IDEPanel
+                  files={files}
+                  file={file}
+                  setFile={setFile}
+                  setFiles={setFiles}
+                  addFile={addFile}
+                  requestDeleteFile={requestDeleteFile}
+                  uploadFiles={uploadFiles}
+                  getLang={getLang}
+                />
               )}
             </div>
           </div>
 
-          <div className="h-14 bg-white border-t flex items-center justify-center gap-3 px-3 flex-shrink-0">
-            <button onClick={toggleMic} className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${micOn ? "text-gray-700 hover:bg-gray-100" : "text-red-500 bg-red-50"}`}>
-              {micOn ? <FiMic size={18} /> : <FiMicOff size={18} />}
-              <span className="text-[9px]">میکروفون</span>
-            </button>
-            <button onClick={toggleCam} className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${cameraOn ? "text-gray-700 hover:bg-gray-100" : "text-red-500 bg-red-50"}`}>
-              {cameraOn ? <FiVideo size={18} /> : <FiVideoOff size={18} />}
-              <span className="text-[9px]">دوربین</span>
-            </button>
-            <button onClick={() => setChatOpen(!chatOpen)} className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${chatOpen ? "text-blue-600 bg-blue-50" : "text-gray-700 hover:bg-gray-100"}`}>
-              <FiMessageSquare size={18} />
-              <span className="text-[9px]">چت</span>
-            </button>
-          </div>
+          <BottomBar
+            micOn={micOn}
+            toggleMic={toggleMic}
+            cameraOn={cameraOn}
+            toggleCam={toggleCam}
+            chatOpen={chatOpen}
+            setChatOpen={setChatOpen}
+          />
         </div>
       </div>
 
-      {settingsOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSettingsOpen(false)}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()} dir="rtl">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-gray-800">تنظیمات کلاس</h3>
-              <button onClick={() => setSettingsOpen(false)}><FiX size={20} /></button>
+      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      {/* مودال تایید حذف / خطای فایل در IDE — جایگزین alert() و confirm() */}
+      {/* مودال تأیید حذف / خطا */}
+      <ConfirmModal
+        open={!!fileModal}
+        title={fileModal?.type === "confirmDelete" ? "آیا مطمئن هستید؟" : "خطا"}
+        description={
+          fileModal?.type === "confirmDelete"
+            ? `حذف فایل «${fileModal?.name}»؟`
+            : fileModal?.message
+        }
+        confirmText={fileModal?.type === "confirmDelete" ? "حذف" : "متوجه شدم"}
+        cancelText={fileModal?.type === "confirmDelete" ? "انصراف" : "متوجه شدم"}
+        danger={fileModal?.type === "confirmDelete"}
+        onConfirm={fileModal?.type === "confirmDelete" ? confirmDeleteFile : () => setFileModal(null)}
+        onCancel={() => setFileModal(null)}
+      />
+
+      {/* مودال ساخت فایل جدید */}
+      {newFileOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setNewFileOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            dir="rtl"
+          >
+            <div className="flex items-start justify-between p-5 pb-0">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <FiFileText className="text-blue-500" size={22} />
+                </div>
+                <h3 className="font-bold text-gray-800 text-base">فایل جدید</h3>
+              </div>
+              <button
+                onClick={() => setNewFileOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              >
+                <FiX size={18} />
+              </button>
             </div>
-            <div className="space-y-4 text-sm">
-              <label className="flex items-center justify-between"><span>میکروفون با ورود</span><input type="checkbox" className="accent-blue-600" /></label>
-              <label className="flex items-center justify-between"><span>اعلان پیام جدید</span><input type="checkbox" defaultChecked className="accent-blue-600" /></label>
-              <label className="flex items-center justify-between">
-                <span>کیفیت ویدیو</span>
-                <select className="border rounded-lg px-2 py-1 text-xs"><option>خودکار</option><option>بالا</option><option>متوسط</option></select>
-              </label>
+
+            <div className="px-5 pt-4">
+              <label className="block text-sm text-gray-500 mb-1.5">نام فایل</label>
+              <input
+                autoFocus
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createNewFile()}
+                placeholder="مثلاً Button.jsx"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
             </div>
-            <button onClick={() => setSettingsOpen(false)} className="w-full mt-6 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium">ذخیره</button>
+
+            <div className="flex gap-3 p-5 pt-5">
+              <button
+                onClick={() => setNewFileOpen(false)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
+              >
+                انصراف
+              </button>
+              <button
+                onClick={createNewFile}
+                disabled={!newFileName.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition"
+              >
+                ایجاد
+              </button>
+            </div>
           </div>
         </div>
       )}

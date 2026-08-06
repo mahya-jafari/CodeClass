@@ -5,15 +5,15 @@ import Image from 'next/image';
 import { FaLaptopCode } from "react-icons/fa";
 
 export default function LoginPage() {
-  const [activeTab, setActiveTab] = useState('provider');
+  const [activeTab, setActiveTab] = useState('presenter');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-10 via-blue-100 to-blue-80 p-4">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[700px]">
 
-        {/* سمت راست - فرم */}
+        {/* form*/}
         <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center" dir="rtl">
           
           <div className="text-center mb-6 sm:mb-8">
@@ -21,7 +21,7 @@ export default function LoginPage() {
               ورود به حساب کاربری
             </h1>
             
-            {/* آیکون + نام */}
+            {/* icon + name */}
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-blue-600 font-semibold text-xl">CodeClass</span>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
@@ -30,18 +30,18 @@ export default function LoginPage() {
             </div>
           </div>    
 
-          {/* تب‌ها */}
+          {/* tabs */}
           <div className="flex border-b border-gray-200 mb-8">
             <button
-              onClick={() => setActiveTab('provider')}
+              onClick={() => setActiveTab('presenter')}
               className={`flex-1 py-3 text-center font-medium transition-colors relative ${
-                activeTab === 'provider'
+                activeTab === 'presenter'
                   ? 'text-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               ارائه‌دهنده
-              {activeTab === 'provider' && (
+              {activeTab === 'presenter' && (
                 <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-600"></span>
               )}
             </button>
@@ -134,15 +134,14 @@ export default function LoginPage() {
           </p>
         </div>
            
-        {/* سمت چپ - تصویر کامل */}
-        <div className="lg:w-1/2 relative min-h-[300px] lg:min-h-full">
+        {/* picture */}   
+        <div className="hidden lg:block lg:w-1/2 relative min-h-full">
           <img
-            src="/login.png"  
+            src="/login.png"
             alt="CodeClass"
             className="absolute inset-0 w-full h-full object-cover"
           />
         </div>
-
       </div>
     </div>
   );
