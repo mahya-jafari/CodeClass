@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { FiUpload, FiFileText, FiX } from "react-icons/fi";
 
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import Toolbar from "./components/Toolbar";
-import Whiteboard from "./components/Whiteboard";
-import IDEPanel from "./components/IDEPanel";
-import Sidebar from "./components/Sidebar";
-import BottomBar from "./components/BottomBar";
-import SettingsModal from "./components/SettingsModal";
+import Toolbar from "../../../../components/classroom/presenter/Toolbar";
+import Whiteboard from "../../../../components/classroom/presenter/Whiteboard";
+import IDEPanel from "../../../../components/classroom/presenter/IDEPanel";
+import Sidebar from "../../../../components/classroom/presenter/Sidebar";
+import BottomBar from "../../../../components/classroom/presenter/BottomBar";
+import SettingsModal from "../../../../components/classroom/presenter/SettingsModal";
 
 export default function PresenterClassroom() {
   const router = useRouter();
