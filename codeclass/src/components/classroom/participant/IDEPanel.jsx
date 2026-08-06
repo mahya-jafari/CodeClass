@@ -8,11 +8,11 @@ const DEFAULT_FILES = {
   "App.jsx": `import React, { useState } from 'react';\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n  return (\n    <div>\n      <h1>Hello React 👋</h1>\n      <p>Count: {count}</p>\n      <button onClick={() => setCount(c => c + 1)}>Increment</button>\n    </div>\n  );\n}`,
 };
 
-export function useIDE() {
+export function useIDE(canEdit = false) {
   const [file, setFile] = useState("App.jsx");
   const [files, setFiles] = useState(DEFAULT_FILES);
 
-  const [fileModal, setFileModal] = useState(null); 
+  const [fileModal, setFileModal] = useState(null);
   const [newFileOpen, setNewFileOpen] = useState(false);
   const [newFileName, setNewFileName] = useState("");
 
@@ -27,11 +27,13 @@ export function useIDE() {
   };
 
   const addFile = () => {
+    if (!canEdit) return;
     setNewFileName("");
     setNewFileOpen(true);
   };
 
   const createNewFile = () => {
+    if (!canEdit) return;
     const n = newFileName.trim();
     if (!n) return;
     if (files[n]) {
@@ -46,6 +48,7 @@ export function useIDE() {
   };
 
   const requestDeleteFile = (name) => {
+    if (!canEdit) return;
     if (Object.keys(files).length <= 1) {
       setFileModal({ type: "error", message: "حداقل یک فایل باید باقی بماند" });
       return;
@@ -54,6 +57,7 @@ export function useIDE() {
   };
 
   const confirmDeleteFile = () => {
+    if (!canEdit) return;
     const name = fileModal?.name;
     setFiles((p) => {
       const next = { ...p };
@@ -66,6 +70,7 @@ export function useIDE() {
   };
 
   const uploadFiles = (e) => {
+    if (!canEdit) return;
     const list = e.target.files;
     if (!list?.length) return;
     Array.from(list).forEach((f) => {
@@ -87,55 +92,74 @@ export function useIDE() {
   };
 }
 
-export default function IDEPanel({ ide }) {
+export default function IDEPanel({ ide, canEdit = false }) {
   const { file, setFile, files, setFiles, getLang, addFile, requestDeleteFile, uploadFiles } = ide;
 
   return (
-    <div className="flex-1 flex overflow-hidden" dir="ltr">
-      <div className="w-48 bg-[#1e1e1e] text-gray-300 flex flex-col border-r border-gray-700">
+    <div className="flex-1 flex flex-col sm:flex-row overflow-hidden" dir="ltr">
+      <div className="w-full sm:w-48 bg-[#1e1e1e] text-gray-300 flex flex-col border-b sm:border-b-0 sm:border-r border-gray-700 flex-shrink-0 max-h-28 sm:max-h-none">
         <div className="px-2 py-1.5 text-[10px] text-gray-500 border-b border-gray-700 flex items-center justify-between">
           <span>EXPLORER</span>
-          <div className="flex items-center gap-0.5">
-            <button onClick={addFile} title="فایل جدید" className="p-1 hover:bg-[#37373d] rounded text-gray-400 hover:text-white">
-              <FiPlus size={12} />
-            </button>
-            <label title="آپلود فایل / پروژه" className="p-1 hover:bg-[#37373d] rounded text-gray-400 hover:text-white cursor-pointer">
-              <FiUpload size={12} />
-              <input
-                type="file"
-                multiple
-                accept=".js,.jsx,.ts,.tsx,.css,.scss,.html,.json,.md,.py,.txt,.java,.c,.cpp"
-                className="hidden"
-                onChange={uploadFiles}
-              />
-            </label>
-          </div>
+          {canEdit && (
+            <div className="flex items-center gap-0.5">
+              <button onClick={addFile} title="فایل جدید" className="p-1 hover:bg-[#37373d] rounded text-gray-400 hover:text-white">
+                <FiPlus size={12} />
+              </button>
+              <label title="آپلود فایل / پروژه" className="p-1 hover:bg-[#37373d] rounded text-gray-400 hover:text-white cursor-pointer">
+                <FiUpload size={12} />
+                <input
+                  type="file"
+                  multiple
+                  accept=".js,.jsx,.ts,.tsx,.css,.scss,.html,.json,.md,.py,.txt,.java,.c,.cpp"
+                  className="hidden"
+                  onChange={uploadFiles}
+                />
+              </label>
+            </div>
+          )}
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-x-auto sm:overflow-y-auto overflow-y-hidden sm:overflow-x-hidden flex sm:flex-col">
           {Object.keys(files).map((f) => (
-            <div key={f} className={`group flex items-center gap-1 px-2 py-1 text-[11px] ${file === f ? "bg-[#37373d] text-white" : "hover:bg-[#2a2a2a]"}`}>
-              <button onClick={() => setFile(f)} className="flex-1 flex items-center gap-1 text-left truncate">
-                <FiFile size={11} className="text-blue-400 flex-shrink-0" /> {f}
+            <div
+              key={f}
+              className={`group flex items-center gap-1 px-2 py-1.5 sm:py-1 text-[11px] flex-shrink-0 sm:flex-shrink ${
+                file === f ? "bg-[#37373d] text-white" : "hover:bg-[#2a2a2a]"
+              }`}
+            >
+              <button onClick={() => setFile(f)} className="flex-1 flex items-center gap-1 text-left truncate min-w-0">
+                <FiFile size={11} className="text-blue-400 flex-shrink-0" />
+                <span className="truncate max-w-[100px] sm:max-w-none">{f}</span>
               </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); requestDeleteFile(f); }}
-                title="حذف"
-                className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-500 hover:text-red-400 rounded"
-              >
-                <FiTrash2 size={11} />
-              </button>
+              {canEdit && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    requestDeleteFile(f);
+                  }}
+                  title="حذف"
+                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-0.5 text-gray-500 hover:text-red-400 rounded"
+                >
+                  <FiTrash2 size={11} />
+                </button>
+              )}
             </div>
           ))}
         </div>
       </div>
-      <div className="flex-1">
+
+      <div className="flex-1 min-h-0">
         <Editor
           height="100%"
           theme="vs-dark"
           language={getLang(file)}
           value={files[file] || ""}
-          onChange={(v) => setFiles((p) => ({ ...p, [file]: v || "" }))}
-          options={{ fontSize: 13, minimap: { enabled: false }, automaticLayout: true }}
+          onChange={canEdit ? (v) => setFiles((p) => ({ ...p, [file]: v || "" })) : undefined}
+          options={{
+            fontSize: 13,
+            minimap: { enabled: false },
+            automaticLayout: true,
+            readOnly: !canEdit,
+          }}
         />
       </div>
     </div>

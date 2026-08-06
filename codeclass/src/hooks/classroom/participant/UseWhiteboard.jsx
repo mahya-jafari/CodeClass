@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 
-export function useWhiteboard(mode) {
+export function useWhiteboard(mode, canEdit = false) {
   const canvasRef = useRef(null);
   const drawing = useRef(false);
   const last = useRef({ x: 0, y: 0 });
@@ -54,13 +54,14 @@ export function useWhiteboard(mode) {
   };
 
   const start = (e) => {
+    if (!canEdit) return;
     if (!["pen", "highlighter", "eraser"].includes(tool)) return;
     drawing.current = true;
     last.current = pos(e);
   };
 
   const move = (e) => {
-    if (!drawing.current) return;
+    if (!canEdit || !drawing.current) return;
     const ctx = canvasRef.current.getContext("2d");
     const p = pos(e);
     ctx.beginPath();
@@ -86,11 +87,14 @@ export function useWhiteboard(mode) {
   };
 
   const end = () => {
-    if (drawing.current) { drawing.current = false; save(); }
+    if (drawing.current) {
+      drawing.current = false;
+      save();
+    }
   };
 
   const addText = (e) => {
-    if (tool !== "text") return;
+    if (!canEdit || tool !== "text") return;
     const t = prompt("متن:");
     if (!t) return;
     const ctx = canvasRef.current.getContext("2d");
@@ -102,7 +106,7 @@ export function useWhiteboard(mode) {
   };
 
   const undo = () => {
-    if (step.current <= 0) return;
+    if (!canEdit || step.current <= 0) return;
     step.current--;
     const img = new Image();
     img.onload = () => {
@@ -114,7 +118,7 @@ export function useWhiteboard(mode) {
   };
 
   const redo = () => {
-    if (step.current >= history.current.length - 1) return;
+    if (!canEdit || step.current >= history.current.length - 1) return;
     step.current++;
     const img = new Image();
     img.onload = () => {
@@ -126,6 +130,7 @@ export function useWhiteboard(mode) {
   };
 
   const download = () => {
+    if (!canvasRef.current) return;
     const a = document.createElement("a");
     a.href = canvasRef.current.toDataURL();
     a.download = "board.png";

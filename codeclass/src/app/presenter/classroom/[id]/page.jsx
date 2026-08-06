@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { FiUpload, FiFileText, FiX } from "react-icons/fi";
 
 import ConfirmModal from "@/components/ui/ConfirmModal";
-import Toolbar from "../../../../components/classroom/presenter/Toolbar";
-import Whiteboard from "../../../../components/classroom/presenter/Whiteboard";
-import IDEPanel from "../../../../components/classroom/presenter/IDEPanel";
-import Sidebar from "../../../../components/classroom/presenter/Sidebar";
-import BottomBar from "../../../../components/classroom/presenter/BottomBar";
-import SettingsModal from "../../../../components/classroom/presenter/SettingsModal";
+import Toolbar from "@/components/classroom/presenter/Toolbar";
+import Whiteboard from "@/components/classroom/presenter/Whiteboard";
+import IDEPanel from "@/components/classroom/presenter/IDEPanel";
+import Sidebar from "@/components/classroom/presenter/Sidebar";
+import BottomBar from "@/components/classroom/presenter/BottomBar";
+import SettingsModal from "@/components/classroom/presenter/SettingsModal";
 
 export default function PresenterClassroom() {
   const router = useRouter();
@@ -37,13 +37,13 @@ export default function PresenterClassroom() {
     { id: 2, name: "استاد کیشانی", time: "10:32", text: "دوباره توضیح میدم", teacher: true },
   ]);
   const [participants, setParticipants] = useState([
-    { id: 1, name: "استاد کیشانی", mic: true },
-    { id: 2, name: "محیا جعفری", mic: false },
-    { id: 3, name: "فاطمه قاسمی", mic: false },
-    { id: 4, name: "مریم حسینی", mic: false },
+    { id: 1, name: "استاد کیشانی", mic: true, canEdit: true, isSelf: true },
+    { id: 2, name: "محیا جعفری", mic: false, canEdit: false },
+    { id: 3, name: "فاطمه قاسمی", mic: false, canEdit: false },
+    { id: 4, name: "مریم حسینی", mic: false, canEdit: false },
   ]);
 
-  const [fileModal, setFileModal] = useState(null); 
+  const [fileModal, setFileModal] = useState(null);
   const [newFileOpen, setNewFileOpen] = useState(false);
   const [newFileName, setNewFileName] = useState("");
   const canvasRef = useRef(null);
@@ -56,8 +56,22 @@ export default function PresenterClassroom() {
   const last = useRef({ x: 0, y: 0 });
   const history = useRef([]);
   const step = useRef(-1);
-  const points = useRef([]); 
-  const strokeBase = useRef(null); 
+  const points = useRef([]);
+  const strokeBase = useRef(null);
+
+  // to do: socket.emit("set-edit-access", { userId: id, canEdit: value })
+  const toggleParticipantEdit = (id, value) => {
+    setParticipants((ps) =>
+      ps.map((p) => {
+        if (p.id !== id || p.isSelf) return p;
+        return { ...p, canEdit: value };
+      })
+    );
+  };
+
+  const kickParticipant = (id) => {
+    setParticipants((ps) => ps.filter((p) => p.id !== id));
+  };
 
   const save = () => {
     const c = canvasRef.current;
@@ -104,9 +118,7 @@ export default function PresenterClassroom() {
     drawing.current = true;
     const p = pos(e);
     last.current = p;
-
     if (tool === "highlighter") {
-      // ذخیره پیکسل‌های فعلی بوم (sync) برای بازگردانی بدون تیرگی
       const c = canvasRef.current;
       strokeBase.current = c.getContext("2d").getImageData(0, 0, c.width, c.height);
       points.current = [p];
@@ -117,17 +129,11 @@ export default function PresenterClassroom() {
     if (!drawing.current) return;
     const ctx = canvasRef.current.getContext("2d");
     const p = pos(e);
-
     if (tool === "highlighter") {
       points.current.push(p);
-
       const base = strokeBase.current;
       if (!base) return;
-
-      // بازگرداندن بوم به حالت قبل از این stroke (بدون async)
       ctx.putImageData(base, 0, 0);
-
-      // کشیدن کل مسیر هایلایتر با شفافیت یکنواخت (بدون تیرگی وسط)
       if (points.current.length < 2) return;
       ctx.beginPath();
       ctx.moveTo(points.current[0].x, points.current[0].y);
@@ -141,7 +147,6 @@ export default function PresenterClassroom() {
       ctx.lineJoin = "round";
       ctx.stroke();
     } else {
-      // قلم و پاک‌کن مثل قبل
       ctx.beginPath();
       ctx.moveTo(last.current.x, last.current.y);
       ctx.lineTo(p.x, p.y);
@@ -207,7 +212,6 @@ export default function PresenterClassroom() {
     img.src = history.current[step.current];
   };
 
-  // --- IDE helpers ---
   const getLang = (name) => {
     const ext = name.split(".").pop()?.toLowerCase();
     const map = {
@@ -219,25 +223,23 @@ export default function PresenterClassroom() {
   };
 
   const addFile = () => {
-  setNewFileName("");
-  setNewFileOpen(true);        
-    };
+    setNewFileName("");
+    setNewFileOpen(true);
+  };
 
-const createNewFile = () => {
-  const n = newFileName.trim();
-  if (!n) return;
-
-  if (files[n]) {
+  const createNewFile = () => {
+    const n = newFileName.trim();
+    if (!n) return;
+    if (files[n]) {
+      setNewFileOpen(false);
+      setFileModal({ type: "error", message: "فایلی با این نام وجود دارد" });
+      return;
+    }
+    setFiles((p) => ({ ...p, [n]: "" }));
+    setFile(n);
     setNewFileOpen(false);
-    setFileModal({ type: "error", message: "فایلی با این نام وجود دارد" });
-    return;
-  }
-
-  setFiles((p) => ({ ...p, [n]: "" }));
-  setFile(n);
-  setNewFileOpen(false);
-  setNewFileName("");
-};
+    setNewFileName("");
+  };
 
   const requestDeleteFile = (name) => {
     if (Object.keys(files).length <= 1) {
@@ -270,7 +272,7 @@ const createNewFile = () => {
       };
       reader.readAsText(f);
     });
-    e.target.value = ""; // reset for re-upload same file
+    e.target.value = "";
   };
 
   const toggleMic = async () => {
@@ -378,6 +380,8 @@ const createNewFile = () => {
           camRef={camRef}
           participants={participants}
           setParticipants={setParticipants}
+          toggleParticipantEdit={toggleParticipantEdit}
+          kickParticipant={kickParticipant}
           messages={messages}
           message={message}
           setMessage={setMessage}
@@ -426,8 +430,6 @@ const createNewFile = () => {
 
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
-      {/* مودال تایید حذف / خطای فایل در IDE — جایگزین alert() و confirm() */}
-      {/* مودال تأیید حذف / خطا */}
       <ConfirmModal
         open={!!fileModal}
         title={fileModal?.type === "confirmDelete" ? "آیا مطمئن هستید؟" : "خطا"}
@@ -437,13 +439,13 @@ const createNewFile = () => {
             : fileModal?.message
         }
         confirmText={fileModal?.type === "confirmDelete" ? "حذف" : "متوجه شدم"}
-        cancelText={fileModal?.type === "confirmDelete" ? "انصراف" : "متوجه شدم"}
-        danger={fileModal?.type === "confirmDelete"}
+        cancelText="انصراف"
+        showCancel={fileModal?.type === "confirmDelete"}
+        danger={true}
         onConfirm={fileModal?.type === "confirmDelete" ? confirmDeleteFile : () => setFileModal(null)}
         onCancel={() => setFileModal(null)}
       />
 
-      {/* مودال ساخت فایل جدید */}
       {newFileOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
@@ -468,7 +470,6 @@ const createNewFile = () => {
                 <FiX size={18} />
               </button>
             </div>
-
             <div className="px-5 pt-4">
               <label className="block text-sm text-gray-500 mb-1.5">نام فایل</label>
               <input
@@ -480,7 +481,6 @@ const createNewFile = () => {
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
-
             <div className="flex gap-3 p-5 pt-5">
               <button
                 onClick={() => setNewFileOpen(false)}

@@ -26,25 +26,38 @@ export default function ParticipantClassroom() {
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
 
-  const wb = useWhiteboard(mode);
-  const ide = useIDE();
+  const [canEdit, setCanEdit] = useState(false);
+
+  const wb = useWhiteboard(mode, canEdit);
+  const ide = useIDE(canEdit);
   const media = useMedia();
   const chat = useChat([
     { id: 1, name: "استاد کیشانی", time: "10:32", text: "کسی سوالی داره؟", teacher: true },
   ]);
 
   return (
-    <div className="h-screen bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
-      <Toolbar wb={wb} mode={mode} setMode={setMode} onExit={() => router.push("/participant/dashboard")} />
+    <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
+      <Toolbar
+        wb={wb}
+        mode={mode}
+        setMode={setMode}
+        canEdit={canEdit}
+        onExit={() => router.push("/participant/dashboard")}
+      />
 
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar chatOpen={chatOpen} media={media} participants={PARTICIPANTS} chat={chat} />
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+        <Sidebar
+          chatOpen={chatOpen}
+          media={media}
+          participants={PARTICIPANTS}
+          chat={chat}
+        />
 
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="flex-1 p-3 overflow-hidden">
-            <div className="h-full bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col">
-              {mode === "whiteboard" && <Whiteboard wb={wb} />}
-              {mode === "ide" && <IDEPanel ide={ide} />}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
+          <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
+            <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
+              {mode === "whiteboard" && <Whiteboard wb={wb} canEdit={canEdit} />}
+              {mode === "ide" && <IDEPanel ide={ide} canEdit={canEdit} />}
             </div>
           </div>
 
@@ -52,31 +65,45 @@ export default function ParticipantClassroom() {
         </div>
       </div>
 
-      {/* delete file / error modal */}
+      {/* delete file / error modal — only when canEdit */}
+      {canEdit && (
+        <ConfirmModal
+          open={!!ide.fileModal}
+          title={ide.fileModal?.type === "confirmDelete" ? "آیا مطمئن هستید؟" : "خطا"}
+          description={
+            ide.fileModal?.type === "confirmDelete"
+              ? `حذف فایل «${ide.fileModal?.name}»؟`
+              : ide.fileModal?.message
+          }
+          confirmText={ide.fileModal?.type === "confirmDelete" ? "حذف" : "متوجه شدم"}
+          cancelText="انصراف"
+          showCancel={ide.fileModal?.type === "confirmDelete"}
+          danger={true}
+          onConfirm={ide.fileModal?.type === "confirmDelete" ? ide.confirmDeleteFile : () => ide.setFileModal(null)}
+          onCancel={() => ide.setFileModal(null)}
+        />
+      )}
+
       <ConfirmModal
-        open={!!ide.fileModal}
-        title={ide.fileModal?.type === "confirmDelete" ? "آیا مطمئن هستید؟" : "خطا"}
-        description={
-          ide.fileModal?.type === "confirmDelete"
-            ? `حذف فایل «${ide.fileModal?.name}»؟`
-            : ide.fileModal?.message
-        }
-        confirmText={ide.fileModal?.type === "confirmDelete" ? "حذف" : "متوجه شدم"}
-        cancelText="انصراف"
-        showCancel={ide.fileModal?.type === "confirmDelete"}
+        open={!!media.mediaError}
+        title={media.mediaError?.title || "خطا"}
+        description={media.mediaError?.message}
+        confirmText="متوجه شدم"
+        showCancel={false}
         danger={true}
-        onConfirm={ide.fileModal?.type === "confirmDelete" ? ide.confirmDeleteFile : () => ide.setFileModal(null)}
-        onCancel={() => ide.setFileModal(null)}
+        onConfirm={media.clearMediaError}
+        onCancel={media.clearMediaError}
       />
 
-      {/* make new file modal */}
-      <NewFileModal
-        open={ide.newFileOpen}
-        name={ide.newFileName}
-        setName={ide.setNewFileName}
-        onCreate={ide.createNewFile}
-        onClose={() => ide.setNewFileOpen(false)}
-      />
+      {canEdit && (
+        <NewFileModal
+          open={ide.newFileOpen}
+          name={ide.newFileName}
+          setName={ide.setNewFileName}
+          onCreate={ide.createNewFile}
+          onClose={() => ide.setNewFileOpen(false)}
+        />
+      )}
     </div>
   );
 }

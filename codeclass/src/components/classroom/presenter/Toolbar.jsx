@@ -38,8 +38,8 @@ export default function Toolbar({
   return (
     <header className="h-12 bg-white border-b flex items-center justify-between px-3 flex-shrink-0 z-20">
       <div className="flex items-center gap-0.5">
-        <button onClick={undo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiRotateCcw size={15} /></button>
         <button onClick={redo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiRotateCw size={15} /></button>
+        <button onClick={undo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"><FiRotateCcw size={15} /></button>
         <div className="w-px h-5 bg-gray-200 mx-1" />
         <ToolBtn id="pen" icon={<FiEdit2 size={15} />} title="مداد" tool={tool} setTool={setTool} />
         <ToolBtn id="highlighter" icon={<FiSquare size={15} />} title="هایلایتر" tool={tool} setTool={setTool} />
