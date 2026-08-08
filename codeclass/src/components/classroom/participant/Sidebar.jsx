@@ -96,7 +96,7 @@ export default function Sidebar({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="پیام..."
+            placeholder="پیام خود را وارد کنید..."
             className="flex-1 px-2.5 py-2 border rounded-xl text-[11px] outline-none focus:border-blue-500"
           />
           <button onClick={send} className="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center"><FiSend size={13} /></button>

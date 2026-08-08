@@ -19,18 +19,20 @@ import { useChat } from "@/hooks/classroom/presenter/UseChat";
 
 export default function PresenterClassroom() {
   const router = useRouter();
+  // دسکتاپ: whiteboard | pdf | ide
+  // موبایل علاوه بر آن: "media" برای صفحه ویدیو/چت/اعضا
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [participants, setParticipants] = useState([
-    { id: 1, name: "استاد کیشانی", mic: true },
-    { id: 2, name: "محیا جعفری", mic: false },
-    { id: 3, name: "فاطمه قاسمی", mic: false },
-    { id: 4, name: "مریم حسینی", mic: false },
+    { id: 1, name: "استاد کیشانی", mic: true, canEdit: true, isSelf: true },
+    { id: 2, name: "محیا جعفری", mic: false, canEdit: false },
+    { id: 3, name: "فاطمه قاسمی", mic: false, canEdit: false },
+    { id: 4, name: "مریم حسینی", mic: false, canEdit: false },
   ]);
 
-  const wb = useWhiteboard(mode);
+  const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode);
   const media = useMedia();
   const chat = useChat([
     { id: 1, name: "محیا جعفری", time: "10:30", text: "من متوجه نشدم", teacher: false },
@@ -38,8 +40,21 @@ export default function PresenterClassroom() {
   ]);
   const ide = useIDE();
 
+  const toggleParticipantEdit = (id, value) => {
+    setParticipants((ps) =>
+      ps.map((p) => {
+        if (p.id !== id || p.isSelf) return p;
+        return { ...p, canEdit: value };
+      })
+    );
+  };
+
+  const kickParticipant = (id) => {
+    setParticipants((ps) => ps.filter((p) => p.id !== id));
+  };
+
   return (
-    <div className="h-screen bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
+    <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
       <Toolbar
         undo={wb.undo}
         redo={wb.redo}
@@ -59,39 +74,75 @@ export default function PresenterClassroom() {
         onExit={() => router.push("/presenter/dashboard")}
       />
 
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar
-          chatOpen={chatOpen}
-          videoSrc={media.videoSrc}
-          setVideoSrc={media.setVideoSrc}
-          videoRef={media.videoRef}
-          playing={media.playing}
-          setPlaying={media.setPlaying}
-          cameraOn={media.cameraOn}
-          setCameraOn={media.setCameraOn}
-          camRef={media.camRef}
-          participants={participants}
-          setParticipants={setParticipants}
-          messages={chat.messages}
-          message={chat.message}
-          setMessage={chat.setMessage}
-          send={chat.send}
-        />
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className="hidden md:flex h-full">
+          <Sidebar
+            chatOpen={chatOpen}
+            videoSrc={media.videoSrc}
+            setVideoSrc={media.setVideoSrc}
+            videoRef={media.videoRef}
+            playing={media.playing}
+            setPlaying={media.setPlaying}
+            cameraOn={media.cameraOn}
+            setCameraOn={media.setCameraOn}
+            camRef={media.camRef}
+            participants={participants}
+            setParticipants={setParticipants}
+            toggleParticipantEdit={toggleParticipantEdit}
+            kickParticipant={kickParticipant}
+            messages={chat.messages}
+            message={chat.message}
+            setMessage={chat.setMessage}
+            send={chat.send}
+          />
+        </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="flex-1 p-3 overflow-hidden">
-            <div className="h-full bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
+          <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
+            <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col">
+
+              {/* Mobile: Video page + members + chat */}
+              {mode === "media" && (
+                <div className="md:hidden flex-1 flex flex-col min-h-0">
+                  <Sidebar
+                    chatOpen={true}
+                    videoSrc={media.videoSrc}
+                    setVideoSrc={media.setVideoSrc}
+                    videoRef={media.videoRef}
+                    playing={media.playing}
+                    setPlaying={media.setPlaying}
+                    cameraOn={media.cameraOn}
+                    setCameraOn={media.setCameraOn}
+                    camRef={media.camRef}
+                    participants={participants}
+                    setParticipants={setParticipants}
+                    toggleParticipantEdit={toggleParticipantEdit}
+                    kickParticipant={kickParticipant}
+                    messages={chat.messages}
+                    message={chat.message}
+                    setMessage={chat.setMessage}
+                    send={chat.send}
+                    fullHeight
+                    compact
+                  />
+                </div>
+              )}
+
               {mode === "whiteboard" && (
                 <Whiteboard canvasRef={wb.canvasRef} start={wb.start} move={wb.move} end={wb.end} addText={wb.addText} />
               )}
+
               {mode === "pdf" && (
-                pdfUrl ? <iframe src={pdfUrl} className="flex-1 w-full border-0" /> : (
+                pdfUrl ? (
+                  <iframe src={pdfUrl} className="flex-1 w-full border-0" />
+                ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
                     <FiUpload size={36} />
                     <p className="text-sm">PDF آپلود کنید</p>
                   </div>
                 )
               )}
+
               {mode === "ide" && (
                 <IDEPanel
                   files={ide.files}
@@ -114,13 +165,14 @@ export default function PresenterClassroom() {
             toggleCam={media.toggleCam}
             chatOpen={chatOpen}
             setChatOpen={setChatOpen}
+            mode={mode}
+            setMode={setMode}
           />
         </div>
       </div>
 
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
-      {/* Delete Confirmation / Error Modal */}
       <ConfirmModal
         open={!!ide.fileModal}
         title={ide.fileModal?.type === "confirmDelete" ? "آیا مطمئن هستید؟" : "خطا"}
@@ -130,13 +182,13 @@ export default function PresenterClassroom() {
             : ide.fileModal?.message
         }
         confirmText={ide.fileModal?.type === "confirmDelete" ? "حذف" : "متوجه شدم"}
-        cancelText={ide.fileModal?.type === "confirmDelete" ? "انصراف" : "متوجه شدم"}
-        danger={ide.fileModal?.type === "confirmDelete"}
+        cancelText="انصراف"
+        showCancel={ide.fileModal?.type === "confirmDelete"}
+        danger={true}
         onConfirm={ide.fileModal?.type === "confirmDelete" ? ide.confirmDeleteFile : () => ide.setFileModal(null)}
         onCancel={() => ide.setFileModal(null)}
       />
 
-      {/* New File Creation Modal */}
       <NewFileModal
         open={ide.newFileOpen}
         name={ide.newFileName}
