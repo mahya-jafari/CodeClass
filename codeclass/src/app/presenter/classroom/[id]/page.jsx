@@ -12,10 +12,12 @@ import IDEPanel, { useIDE } from "@/components/classroom/shared/IDEPanel";
 import BottomBar from "@/components/classroom/shared/BottomBar";
 import SettingsModal from "@/components/classroom/presenter/SettingsModal";
 import NewFileModal from "@/components/classroom/shared/NewFileModal";
+import TextBoxLayer from "@/components/classroom/shared/TextBoxLayer";
 
 import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
+import { useTextBoxes } from "@/hooks/classroom/UseTextBoxes";
 
 export default function PresenterClassroom() {
   const router = useRouter();
@@ -37,6 +39,7 @@ export default function PresenterClassroom() {
     { id: 2, name: "استاد کیشانی", time: "10:32", text: "دوباره توضیح میدم", teacher: true },
   ]);
   const ide = useIDE();
+  const tb = useTextBoxes();
 
   const toggleParticipantEdit = (id, value) => {
     setParticipants((ps) =>
@@ -97,9 +100,9 @@ export default function PresenterClassroom() {
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
           <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
-            <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col">
+            <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
 
-              {/* Mobile: Video page + members + chat */}
+              {/* موبایل: ویدیو + اعضا + چت */}
               {mode === "media" && (
                 <div className="md:hidden flex-1 flex flex-col min-h-0">
                   <Sidebar
@@ -126,13 +129,11 @@ export default function PresenterClassroom() {
                 </div>
               )}
 
-              {mode === "whiteboard" && (
-                <Whiteboard wb={wb} />
-              )}
+              {mode === "whiteboard" && <Whiteboard wb={wb} />}
 
               {mode === "pdf" && (
                 pdfUrl ? (
-                  <iframe src={pdfUrl} className="flex-1 w-full border-0" />
+                  <iframe src={pdfUrl} className="flex-1 w-full border-0" title="pdf" />
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
                     <FiUpload size={36} />
@@ -141,8 +142,22 @@ export default function PresenterClassroom() {
                 )
               )}
 
-              {mode === "ide" && (
-                <IDEPanel ide={ide} />
+              {mode === "ide" && <IDEPanel ide={ide} />}
+
+              {/* لایه باکس متن — روی وایت‌برد و PDF */}
+              {(mode === "whiteboard" || mode === "pdf") && (
+                <TextBoxLayer
+                  boxes={tb.boxes}
+                  selectedId={tb.selectedId}
+                  setSelectedId={tb.setSelectedId}
+                  updateBox={tb.updateBox}
+                  removeBox={tb.removeBox}
+                  addBox={tb.addBox}
+                  tool={wb.tool}
+                  color={wb.color}
+                  size={wb.size}
+                  enabled
+                />
               )}
             </div>
           </div>

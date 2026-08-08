@@ -10,10 +10,12 @@ import Whiteboard from "@/components/classroom/shared/Whiteboard";
 import IDEPanel, { useIDE } from "@/components/classroom/shared/IDEPanel";
 import BottomBar from "@/components/classroom/shared/BottomBar";
 import NewFileModal from "@/components/classroom/shared/NewFileModal";
+import TextBoxLayer from "@/components/classroom/shared/TextBoxLayer";
 
 import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
+import { useTextBoxes } from "@/hooks/classroom/UseTextBoxes";
 
 const PARTICIPANTS = [
   { id: 1, name: "استاد کیشانی", mic: true },
@@ -24,15 +26,16 @@ const PARTICIPANTS = [
 export default function ParticipantClassroom() {
   const router = useRouter();
   const [mode, setMode] = useState("whiteboard");
-  const [chatOpen, setChatOpen] = useState(true); 
+  const [chatOpen, setChatOpen] = useState(true);
   const [canEdit, setCanEdit] = useState(false);
 
-  const wb = useWhiteboard(mode, canEdit);
+  const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode, canEdit);
   const ide = useIDE(canEdit);
   const media = useMedia();
   const chat = useChat([
     { id: 1, name: "استاد کیشانی", time: "10:32", text: "کسی سوالی داره؟", teacher: true },
   ]);
+  const tb = useTextBoxes();
 
   return (
     <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
@@ -59,7 +62,6 @@ export default function ParticipantClassroom() {
           <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
             <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
 
-              {/* Mobile: Video page + members + chat*/}
               {mode === "media" && (
                 <div className="md:hidden flex-1 flex flex-col min-h-0">
                   <Sidebar
@@ -73,24 +75,38 @@ export default function ParticipantClassroom() {
                 </div>
               )}
 
-              {/* whiteboard */}
-              {(mode === "whiteboard") && (
+              {mode === "whiteboard" && (
                 <Whiteboard wb={wb} canEdit={canEdit} />
               )}
 
-              {/* IDE */}
               {mode === "ide" && (
                 <IDEPanel ide={ide} canEdit={canEdit} />
+              )}
+
+              {mode === "whiteboard" && canEdit && (
+                <TextBoxLayer
+                  boxes={tb.boxes}
+                  selectedId={tb.selectedId}
+                  setSelectedId={tb.setSelectedId}
+                  updateBox={tb.updateBox}
+                  removeBox={tb.removeBox}
+                  addBox={tb.addBox}
+                  tool={wb.tool}
+                  color={wb.color}
+                  size={wb.size}
+                  enabled
+                />
               )}
             </div>
           </div>
 
-          <BottomBar 
-            media={media} 
-            chatOpen={chatOpen} 
-            setChatOpen={setChatOpen} 
-            mode={mode} 
-            setMode={setMode} />
+          <BottomBar
+            media={media}
+            chatOpen={chatOpen}
+            setChatOpen={setChatOpen}
+            mode={mode}
+            setMode={setMode}
+          />
         </div>
       </div>
 
