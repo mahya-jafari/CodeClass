@@ -2,7 +2,7 @@
 
 import {
   FiRotateCcw, FiRotateCw, FiEdit2, FiSquare, FiTrash2, FiType,
-  FiDownload, FiCode, FiPhoneOff,
+  FiDownload, FiCode, FiPhoneOff, FiVideo,
 } from "react-icons/fi";
 
 const TOOLS = [
@@ -17,15 +17,15 @@ export default function Toolbar({ wb, mode, setMode, canEdit, onExit }) {
 
   return (
     <header className="h-12 bg-white border-b flex items-center justify-between px-2 md:px-3 flex-shrink-0 gap-1">
-      {/* tools - only when canEdit */}
+      {/* ابزارها — فقط وقتی canEdit و روی وایت‌برد */}
       <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none min-w-0 flex-1 md:flex-none">
-        {canEdit && (
+        {canEdit && mode === "whiteboard" && (
           <>
-            <button onClick={redo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0">
-              <FiRotateCw size={15} />
-            </button>
             <button onClick={undo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0">
               <FiRotateCcw size={15} />
+            </button>
+            <button onClick={redo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0">
+              <FiRotateCw size={15} />
             </button>
             <div className="w-px h-5 bg-gray-200 mx-1 flex-shrink-0" />
             {TOOLS.map((t) => (
@@ -41,30 +41,30 @@ export default function Toolbar({ wb, mode, setMode, canEdit, onExit }) {
             ))}
             {["pen", "highlighter", "text"].includes(tool) && (
               <div className="flex items-center gap-1 mr-1 flex-shrink-0">
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="w-6 h-6 rounded border-0 cursor-pointer"
-                />
-                <input
-                  type="range"
-                  min="1"
-                  max="12"
-                  value={size}
-                  onChange={(e) => setSize(+e.target.value)}
-                  className="w-12 md:w-14"
-                />
+                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-6 h-6 rounded border-0 cursor-pointer" />
+                <input type="range" min="1" max="12" value={size} onChange={(e) => setSize(+e.target.value)} className="w-12 md:w-14" />
               </div>
             )}
           </>
         )}
-        <button onClick={download} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0" title="ذخیره">
-          <FiDownload size={15} />
-        </button>
+        {mode === "whiteboard" && (
+          <button onClick={download} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0" title="ذخیره">
+            <FiDownload size={15} />
+          </button>
+        )}
       </div>
 
+      {/* سوییچ حالت */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0">
+        {/* فقط موبایل: تب ویدیو/چت */}
+        <button
+          onClick={() => setMode("media")}
+          className={`md:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
+            mode === "media" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"
+          }`}
+        >
+          <FiVideo size={12} />
+        </button>
         <button
           onClick={() => setMode("whiteboard")}
           className={`flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs font-medium ${

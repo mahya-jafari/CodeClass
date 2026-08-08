@@ -24,11 +24,10 @@ const PARTICIPANTS = [
 export default function ParticipantClassroom() {
   const router = useRouter();
   const [mode, setMode] = useState("whiteboard");
-  const [chatOpen, setChatOpen] = useState(true);
-
+  const [chatOpen, setChatOpen] = useState(true); 
   const [canEdit, setCanEdit] = useState(false);
 
-  const wb = useWhiteboard(mode, canEdit);
+  const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode, canEdit);
   const ide = useIDE(canEdit);
   const media = useMedia();
   const chat = useChat([
@@ -45,27 +44,57 @@ export default function ParticipantClassroom() {
         onExit={() => router.push("/participant/dashboard")}
       />
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        <Sidebar
-          chatOpen={chatOpen}
-          media={media}
-          participants={PARTICIPANTS}
-          chat={chat}
-        />
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className="hidden md:flex h-full">
+          <Sidebar
+            chatOpen={chatOpen}
+            media={media}
+            participants={PARTICIPANTS}
+            chat={chat}
+            compact={false}
+          />
+        </div>
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
           <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
             <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
-              {mode === "whiteboard" && <Whiteboard wb={wb} canEdit={canEdit} />}
-              {mode === "ide" && <IDEPanel ide={ide} canEdit={canEdit} />}
+
+              {/* Mobile: Video page + members + chat*/}
+              {mode === "media" && (
+                <div className="md:hidden flex-1 flex flex-col min-h-0">
+                  <Sidebar
+                    chatOpen={true}
+                    media={media}
+                    participants={PARTICIPANTS}
+                    chat={chat}
+                    compact={true}
+                    fullHeight
+                  />
+                </div>
+              )}
+
+              {/* whiteboard */}
+              {(mode === "whiteboard") && (
+                <Whiteboard wb={wb} canEdit={canEdit} />
+              )}
+
+              {/* IDE */}
+              {mode === "ide" && (
+                <IDEPanel ide={ide} canEdit={canEdit} />
+              )}
             </div>
           </div>
 
-          <BottomBar media={media} chatOpen={chatOpen} setChatOpen={setChatOpen} />
+          <BottomBar
+            media={media}
+            chatOpen={chatOpen}
+            setChatOpen={setChatOpen}
+            mode={mode}
+            setMode={setMode}
+          />
         </div>
       </div>
 
-      {/* delete file / error modal — only when canEdit */}
       {canEdit && (
         <ConfirmModal
           open={!!ide.fileModal}

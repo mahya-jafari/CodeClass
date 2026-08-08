@@ -2,11 +2,21 @@
 
 import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiMessageSquare } from "react-icons/fi";
 
-export default function BottomBar({ media, chatOpen, setChatOpen }) {
+export default function BottomBar({ media, chatOpen, setChatOpen, mode, setMode }) {
   const { micOn, cameraOn, toggleMic, toggleCam } = media;
 
+  const handleChatClick = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      setMode?.(mode === "media" ? "whiteboard" : "media");
+    } else {
+      setChatOpen?.(!chatOpen);
+    }
+  };
+
+  const chatActive = mode === "media" || (!!chatOpen && mode !== "media");
+
   return (
-    <div className="h-14 bg-white border-t flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-3 flex-shrink-0 safe-area-pb">
+    <div className="h-14 bg-white border-t flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-3 flex-shrink-0">
       <button
         onClick={toggleMic}
         className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${
@@ -26,9 +36,11 @@ export default function BottomBar({ media, chatOpen, setChatOpen }) {
         <span className="text-[9px]">دوربین</span>
       </button>
       <button
-        onClick={() => setChatOpen(!chatOpen)}
+        onClick={handleChatClick}
         className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${
-          chatOpen ? "text-blue-600 bg-blue-50" : "text-gray-700 hover:bg-gray-100"
+          mode === "media" || chatOpen
+            ? "text-blue-600 bg-blue-50"
+            : "text-gray-700 hover:bg-gray-100"
         }`}
       >
         <FiMessageSquare size={18} />

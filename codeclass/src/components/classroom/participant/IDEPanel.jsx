@@ -97,7 +97,7 @@ export default function IDEPanel({ ide, canEdit = false }) {
 
   return (
     <div className="flex-1 flex flex-col sm:flex-row overflow-hidden" dir="ltr">
-      <div className="w-full sm:w-48 bg-[#1e1e1e] text-gray-300 flex flex-col border-b sm:border-b-0 sm:border-r border-gray-700 flex-shrink-0 max-h-28 sm:max-h-none">
+      <div className="w-full lg:w-56 bg-[#1e1e1e] text-gray-300 flex flex-col border-b sm:border-b-0 sm:border-r border-gray-700 flex-shrink-0 max-h-20 sm:max-h-none">
         <div className="px-2 py-1.5 text-[10px] text-gray-500 border-b border-gray-700 flex items-center justify-between">
           <span>EXPLORER</span>
           {canEdit && (
