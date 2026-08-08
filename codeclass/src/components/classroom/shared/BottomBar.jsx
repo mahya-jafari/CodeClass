@@ -2,16 +2,25 @@
 
 import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiMessageSquare } from "react-icons/fi";
 
+/**
+ * shared BottomBar for presenter and participant
+ */
 export default function BottomBar({
-  micOn,
-  toggleMic,
-  cameraOn,
-  toggleCam,
+  media,
+  micOn: micOnProp,
+  toggleMic: toggleMicProp,
+  cameraOn: cameraOnProp,
+  toggleCam: toggleCamProp,
   chatOpen,
   setChatOpen,
   mode,
   setMode,
 }) {
+  const micOn = media?.micOn ?? micOnProp;
+  const cameraOn = media?.cameraOn ?? cameraOnProp;
+  const toggleMic = media?.toggleMic ?? toggleMicProp;
+  const toggleCam = media?.toggleCam ?? toggleCamProp;
+
   const handleChatClick = () => {
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
       setMode?.(mode === "media" ? "whiteboard" : "media");

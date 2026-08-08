@@ -1,6 +1,6 @@
 'use client';
 
-import { FiVideo, FiMaximize, FiUsers, FiMic, FiMicOff, FiSend } from "react-icons/fi";
+import { FiVideo, FiMaximize, FiUsers, FiMic, FiMicOff, FiSend, FiMessageSquare } from "react-icons/fi";
 
 export default function Sidebar({
   chatOpen,
@@ -76,7 +76,7 @@ export default function Sidebar({
 
       {/* chat */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="px-3 py-2 border-b text-xs font-bold">گفتگو</div>
+        <div className="px-3 py-2 border-b text-xs font-bold flex items-center gap-1.5"><FiMessageSquare size={15} /> گفتگو</div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
           {messages.map((m) => (
            <div key={m.id} className="flex gap-1.5">

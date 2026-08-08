@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 
+/**
+ * shared useMedia for presenter and participant
+ */
+
 export function useChat(initialMessages = []) {
   const [messages, setMessages] = useState(initialMessages);
   const [message, setMessage] = useState("");
@@ -12,7 +16,7 @@ export function useChat(initialMessages = []) {
     setMessages((m) => [...m, {
       id: Date.now(), name: "شما",
       time: `${t.getHours()}:${String(t.getMinutes()).padStart(2, "0")}`,
-      text: message, teacher: true
+      text: message, teacher: false
     }]);
     setMessage("");
   };

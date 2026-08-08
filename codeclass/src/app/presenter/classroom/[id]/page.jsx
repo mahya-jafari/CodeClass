@@ -7,20 +7,18 @@ import { FiUpload } from "react-icons/fi";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toolbar from "@/components/classroom/presenter/Toolbar";
 import Sidebar from "@/components/classroom/presenter/Sidebar";
-import Whiteboard from "@/components/classroom/presenter/Whiteboard";
-import IDEPanel, { useIDE } from "@/components/classroom/presenter/IDEPanel";
-import BottomBar from "@/components/classroom/presenter/BottomBar";
+import Whiteboard from "@/components/classroom/shared/Whiteboard";
+import IDEPanel, { useIDE } from "@/components/classroom/shared/IDEPanel";
+import BottomBar from "@/components/classroom/shared/BottomBar";
 import SettingsModal from "@/components/classroom/presenter/SettingsModal";
-import NewFileModal from "@/components/classroom/presenter/NewFileModal";
+import NewFileModal from "@/components/classroom/shared/NewFileModal";
 
-import { useWhiteboard } from "@/hooks/classroom/presenter/UseWhiteboard";
-import { useMedia } from "@/hooks/classroom/presenter/UseMedia";
-import { useChat } from "@/hooks/classroom/presenter/UseChat";
+import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
+import { useMedia } from "@/hooks/classroom/UseMedia";
+import { useChat } from "@/hooks/classroom/UseChat";
 
 export default function PresenterClassroom() {
   const router = useRouter();
-  // دسکتاپ: whiteboard | pdf | ide
-  // موبایل علاوه بر آن: "media" برای صفحه ویدیو/چت/اعضا
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -32,7 +30,7 @@ export default function PresenterClassroom() {
     { id: 4, name: "مریم حسینی", mic: false, canEdit: false },
   ]);
 
-  const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode);
+  const wb = useWhiteboard(mode);
   const media = useMedia();
   const chat = useChat([
     { id: 1, name: "محیا جعفری", time: "10:30", text: "من متوجه نشدم", teacher: false },
@@ -129,7 +127,7 @@ export default function PresenterClassroom() {
               )}
 
               {mode === "whiteboard" && (
-                <Whiteboard canvasRef={wb.canvasRef} start={wb.start} move={wb.move} end={wb.end} addText={wb.addText} />
+                <Whiteboard wb={wb} />
               )}
 
               {mode === "pdf" && (
@@ -144,16 +142,7 @@ export default function PresenterClassroom() {
               )}
 
               {mode === "ide" && (
-                <IDEPanel
-                  files={ide.files}
-                  file={ide.file}
-                  setFile={ide.setFile}
-                  setFiles={ide.setFiles}
-                  addFile={ide.addFile}
-                  requestDeleteFile={ide.requestDeleteFile}
-                  uploadFiles={ide.uploadFiles}
-                  getLang={ide.getLang}
-                />
+                <IDEPanel ide={ide} />
               )}
             </div>
           </div>

@@ -6,14 +6,14 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 
 import Toolbar from "@/components/classroom/participant/Toolbar";
 import Sidebar from "@/components/classroom/participant/Sidebar";
-import Whiteboard from "@/components/classroom/participant/Whiteboard";
-import IDEPanel, { useIDE } from "@/components/classroom/participant/IDEPanel";
-import BottomBar from "@/components/classroom/participant/BottomBar";
-import NewFileModal from "@/components/classroom/participant/NewFileModal";
+import Whiteboard from "@/components/classroom/shared/Whiteboard";
+import IDEPanel, { useIDE } from "@/components/classroom/shared/IDEPanel";
+import BottomBar from "@/components/classroom/shared/BottomBar";
+import NewFileModal from "@/components/classroom/shared/NewFileModal";
 
-import { useWhiteboard } from "@/hooks/classroom/participant/UseWhiteboard";
-import { useMedia } from "@/hooks/classroom/participant/UseMedia";
-import { useChat } from "@/hooks/classroom/participant/UseChat";
+import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
+import { useMedia } from "@/hooks/classroom/UseMedia";
+import { useChat } from "@/hooks/classroom/UseChat";
 
 const PARTICIPANTS = [
   { id: 1, name: "استاد کیشانی", mic: true },
@@ -27,7 +27,7 @@ export default function ParticipantClassroom() {
   const [chatOpen, setChatOpen] = useState(true); 
   const [canEdit, setCanEdit] = useState(false);
 
-  const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode, canEdit);
+  const wb = useWhiteboard(mode, canEdit);
   const ide = useIDE(canEdit);
   const media = useMedia();
   const chat = useChat([
@@ -85,13 +85,12 @@ export default function ParticipantClassroom() {
             </div>
           </div>
 
-          <BottomBar
-            media={media}
-            chatOpen={chatOpen}
-            setChatOpen={setChatOpen}
-            mode={mode}
-            setMode={setMode}
-          />
+          <BottomBar 
+            media={media} 
+            chatOpen={chatOpen} 
+            setChatOpen={setChatOpen} 
+            mode={mode} 
+            setMode={setMode} />
         </div>
       </div>
 

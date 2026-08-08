@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   FiVideo, FiMaximize, FiUpload, FiPlay, FiPause,
   FiUsers, FiMic, FiMicOff, FiMoreVertical, FiSend,
-  FiEdit2, FiEyeOff, FiUserX,
+  FiEdit2, FiEyeOff, FiUserX, FiMessageSquare
 } from "react-icons/fi";
 
 function ParticipantMenu({ participant, onGrant, onRevoke, onKick, onClose }) {
@@ -209,8 +209,8 @@ export default function Sidebar({
 
       {/* chat */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="px-3 py-2 border-b text-sm font-bold">گفتگو</div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+        <div className="px-3 py-2 border-b text-xs font-bold flex items-center gap-1.5"><FiMessageSquare size={15} /> گفتگو</div>
+         <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
           {messages.map((m) => (
            <div key={m.id} className="flex gap-1.5">
               <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[9px] flex-shrink-0">{m.name[0]}</div>
