@@ -7,20 +7,11 @@ import {
 } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
+import { participantMenuItems } from "@/components/layout/participantMenuItems";
 
 export default function ParticipantMyClasses() {
   const [activeMenu, setActiveMenu] = useState("my-classes");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const menuItems = [
-    { id: "dashboard", label: "داشبورد", icon: <FiHome size={20} /> },
-    { id: "my-classes", label: "کلاس‌های من", icon: <FiBookOpen size={20} /> },
-    { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
-    { id: "assignments", label: "تکالیف من", icon: <FiFileText size={20} /> },
-    { id: "certificates", label: "گواهینامه‌ها", icon: <FiAward size={20} /> },
-    { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 2 },
-    { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
-  ];
 
   const classes = [
     { id: 1, title: "آموزش React از صفر تا پیشرفته", teacher: "استاد علی محمدی", progress: 75, students: 24, sessions: 18, status: "در حال برگزاری", image: "https://via.placeholder.com/80x80?text=React", color: "bg-blue-100" },
@@ -31,7 +22,13 @@ export default function ParticipantMyClasses() {
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
-      <ParticipantSidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} menuItems={menuItems} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ParticipantSidebar 
+        activeMenu="my-classes"
+        setActiveMenu={setActiveMenu} 
+        menuItems={participantMenuItems} 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <main className="flex-1 lg:mr-64 transition-all duration-300">
         <ParticipantHeader></ParticipantHeader>

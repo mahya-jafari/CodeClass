@@ -13,8 +13,10 @@ export default function ParticipantSidebar({ activeMenu, setActiveMenu, menuItem
     const routes = {
       dashboard: "/participant/dashboard",
       "my-classes": "/participant/my-classes",
-      calendar: "/participant/calendar",
+      webinars: "/participant/webinars",
       assignments: "/participant/assignments",
+      pamphlets: "/participant/pamphlets",
+      calendar: "/participant/calendar",
       certificates: "/participant/certificates",
       messages: "/participant/messages",
       settings: "/participant/settings",
