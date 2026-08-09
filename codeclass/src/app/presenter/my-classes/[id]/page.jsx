@@ -10,6 +10,7 @@ import {
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
 
 const CLASSES_DATA = {
   1: {
@@ -96,16 +97,6 @@ export default function ClassDetailPage() {
   const [activeTab, setActiveTab] = useState("sessions");
   const [deleteModal, setDeleteModal] = useState(false);
 
-  const menuItems = [
-    { id: "dashboard", label: "داشبورد", icon: <FiHome size={20} /> },
-    { id: "my-classes", label: "کلاس‌های من", icon: <FiBookOpen size={20} /> },
-    { id: "new-class", label: "برگزاری کلاس جدید", icon: <FiPlusCircle size={20} /> },
-    { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
-    { id: "reports", label: "گزارش‌ها", icon: <FiBarChart2 size={20} /> },
-    { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 3 },
-    { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
-  ];
-
   const handleDelete = () => {
     setDeleteModal(false);
     router.push("/presenter/my-classes");
@@ -124,7 +115,7 @@ export default function ClassDetailPage() {
       <Sidebar
         activeMenu={activeMenu}
         setActiveMenu={setActiveMenu}
-        menuItems={menuItems}
+        menuItems={presenterMenuItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

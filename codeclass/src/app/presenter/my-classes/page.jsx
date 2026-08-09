@@ -10,6 +10,7 @@ import {
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
 
 export default function MyClassesPage() {
   const router = useRouter();
@@ -19,16 +20,6 @@ export default function MyClassesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [filterOpen, setFilterOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: "" });
-
-  const menuItems = [
-    { id: "dashboard", label: "داشبورد", icon: <FiHome size={20} /> },
-    { id: "my-classes", label: "کلاس‌های من", icon: <FiBookOpen size={20} /> },
-    { id: "new-class", label: "برگزاری کلاس جدید", icon: <FiPlusCircle size={20} /> },
-    { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
-    { id: "reports", label: "گزارش‌ها", icon: <FiBarChart2 size={20} /> },
-    { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 3 },
-    { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
-  ];
 
   const [classes, setClasses] = useState([
     { id: 1, title: "آموزش React از صفر تا پیشرفته", category: "برنامه‌نویسی وب", students: 24, sessions: 18, status: "فعال", image: "https://via.placeholder.com/80x80?text=React", color: "bg-blue-100" },
@@ -65,9 +56,9 @@ export default function MyClassesPage() {
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
       <Sidebar
-        activeMenu={activeMenu}
+        activeMenu="my-classes"
         setActiveMenu={setActiveMenu}
-        menuItems={menuItems}
+        menuItems={presenterMenuItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

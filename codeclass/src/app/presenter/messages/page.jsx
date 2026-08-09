@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
+import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
 
 export default function MessagesPage() {
   const router = useRouter();
@@ -15,18 +16,8 @@ export default function MessagesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const menuItems = [
-    { id: "dashboard", label: "داشبورد", icon: <FiHome size={20} /> },
-    { id: "my-classes", label: "کلاس‌های من", icon: <FiBookOpen size={20} /> },
-    { id: "new-class", label: "برگزاری کلاس جدید", icon: <FiPlusCircle size={20} /> },
-    { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
-    { id: "reports", label: "گزارش‌ها", icon: <FiBarChart2 size={20} /> },
-    { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 3 },
-    { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
-  ];
-
   const messages = [
-    { id: 1, name: "سارا احمدی", message: "سلام، جلسه بعدی چه زمانی برگزار می‌شود؟", time: "۱۰ دقیقه پیش", unread: true },
+    { id: 1, name: "محیا جعفری", message: "سلام، جلسه بعدی چه زمانی برگزار می‌شود؟", time: "۱۰ دقیقه پیش", unread: true },
     { id: 2, name: "محمد رضایی", message: "فایل‌های جلسه قبل رو می‌تونم دریافت کنم؟", time: "۱ ساعت پیش", unread: true },
     { id: 3, name: "نگار محمدی", message: "ممنون از کلاس عالی امروز", time: "دیروز", unread: false },
   ];
@@ -45,9 +36,9 @@ export default function MessagesPage() {
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
       <Sidebar
-        activeMenu={activeMenu}
+        activeMenu="messages"
         setActiveMenu={setActiveMenu}
-        menuItems={menuItems}
+        menuItems={presenterMenuItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

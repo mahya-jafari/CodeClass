@@ -7,20 +7,11 @@ import {
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
+import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
 
 export default function CalendarPage() {
   const [activeMenu, setActiveMenu] = useState("calendar");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const menuItems = [
-    { id: "dashboard", label: "داشبورد", icon: <FiHome size={20} /> },
-    { id: "my-classes", label: "کلاس‌های من", icon: <FiBookOpen size={20} /> },
-    { id: "new-class", label: "برگزاری کلاس جدید", icon: <FiPlusCircle size={20} /> },
-    { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
-    { id: "reports", label: "گزارش‌ها", icon: <FiBarChart2 size={20} /> },
-    { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 3 },
-    { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
-  ];
 
   const days = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
   const sessions = [
@@ -32,9 +23,9 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
       <Sidebar
-        activeMenu={activeMenu}
+        activeMenu="calendar"
         setActiveMenu={setActiveMenu}
-        menuItems={menuItems}
+        menuItems={presenterMenuItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

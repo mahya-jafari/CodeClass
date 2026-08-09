@@ -14,13 +14,14 @@ export default function Sidebar({ activeMenu, setActiveMenu, menuItems, isOpen, 
       dashboard: "/presenter/dashboard",
       "my-classes": "/presenter/my-classes",
       "new-class": "/presenter/new-class",
+      pamphlets: "/presenter/pamphlets",
       calendar: "/presenter/calendar",
       reports: "/presenter/reports",
       messages: "/presenter/messages",
       settings: "/presenter/settings",
     };
     if (routes[id]) router.push(routes[id]);
-    if (onClose) onClose(); 
+    if (onClose) onClose();
   };
 
   return (

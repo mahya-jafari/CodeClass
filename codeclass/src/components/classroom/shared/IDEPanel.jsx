@@ -93,20 +93,11 @@ export function useIDE(canEdit = true) {
 }
 
 /**
- * IDEPanel مشترک
- *
- * Participant:
- *   <IDEPanel ide={ide} canEdit={canEdit} />
- *
- * Presenter:
- *   <IDEPanel ide={ide} />          // canEdit پیش‌فرض true
- *   یا props تخت (سازگاری عقب‌رو):
- *   <IDEPanel files={...} file={...} setFile={...} ... />
+ * shared IDEPanel
  */
 export default function IDEPanel({
   ide,
   canEdit = true,
-  // props تخت (اختیاری — برای سازگاری با کد قدیمی presenter)
   files: filesProp,
   file: fileProp,
   setFile: setFileProp,
