@@ -115,10 +115,9 @@ export default function PamphletsPage() {
       {/* main area */}
       <main className="flex-1 lg:mr-64 transition-all duration-300">
         {/* center the whole page block */}
+        <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
         <div className="min-h-screen flex flex-col items-center">
           <div className="w-full max-w-5xl">
-            <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
-
             <div className="p-4 sm:p-6 lg:p-8">
               {/* page title */}
               <div className="mb-6 sm:mb-8">

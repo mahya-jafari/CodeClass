@@ -53,16 +53,6 @@ export default function PresenterDashboard() {
       image: "https://via.placeholder.com/80x80?text=JS",
       color: "bg-yellow-100",
     },
-    {
-      id: 3,
-      title: "Python برای مبتدیان",
-      category: "برنامه‌نویسی",
-      students: 18,
-      sessions: 15,
-      status: "فعال",
-      image: "https://via.placeholder.com/80x80?text=Python",
-      color: "bg-green-100",
-    },
   ];
 
   return (
@@ -156,6 +146,50 @@ export default function PresenterDashboard() {
                       مدیریت کلاس
                     </button>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* webinars section */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden my-6">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-800 flex items-center gap-2">وبینارهای من</h2>
+              <button
+                onClick={() => router.push("/presenter/webinars")}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                مشاهده همه
+              </button>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {[
+                { id: 2, title: "وبینار رایگان JavaScript پیشرفته", status: "live", time: "الان" },
+                { id: 1, title: "آشنایی با React 19", status: "upcoming", time: "سه‌شنبه ۱۸:۰۰" },
+              ].map((w) => (
+                <div key={w.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
+                    <FiVideo size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-800 text-sm truncate">{w.title}</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">{w.time}</p>
+                  </div>
+                  <span
+                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
+                      w.status === "live"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {w.status === "live" ? "زنده" : "آینده"}
+                  </span>
+                  <button
+                    onClick={() => router.push(`/presenter/classroom/${w.id}?type=webinar`)}
+                    className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-100 transition"
+                  >
+                    {w.status === "live" ? "ورود" : "شروع"}
+                  </button>
                 </div>
               ))}
             </div>
