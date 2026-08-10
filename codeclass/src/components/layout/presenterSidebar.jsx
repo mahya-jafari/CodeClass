@@ -17,8 +17,8 @@ export default function Sidebar({ activeMenu, setActiveMenu, menuItems, isOpen, 
       webinars: "/presenter/webinars",
       pamphlets: "/presenter/pamphlets",
       calendar: "/presenter/calendar",
-      reports: "/presenter/reports",
       messages: "/presenter/messages",
+      finance: "/presenter/finance",
       settings: "/presenter/settings",
     };
     if (routes[id]) router.push(routes[id]);

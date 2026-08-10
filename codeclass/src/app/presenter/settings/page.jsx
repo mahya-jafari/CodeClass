@@ -24,7 +24,7 @@ export default function SettingsPage() {
       />
 
       <main className="flex-1 lg:mr-64 transition-all duration-300">
-        <PresenterHeader></PresenterHeader>
+        <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
 
         <div className="p-4 sm:p-6 lg:p-8">
             <div className="max-w-3xl mx-auto">   

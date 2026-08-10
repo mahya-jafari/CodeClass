@@ -19,6 +19,7 @@ export default function ParticipantSidebar({ activeMenu, setActiveMenu, menuItem
       calendar: "/participant/calendar",
       certificates: "/participant/certificates",
       messages: "/participant/messages",
+      finance: "/participant/finance",
       settings: "/participant/settings",
     };
     if (routes[id]) router.push(routes[id]);

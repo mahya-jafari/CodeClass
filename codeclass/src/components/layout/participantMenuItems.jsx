@@ -1,5 +1,5 @@
 import {
-  FiHome, FiBookOpen, FiVideo, FiFileText, FiCalendar, FiAward, FiMessageSquare,FiSettings,
+  FiHome, FiBookOpen, FiVideo, FiFileText, FiCalendar, FiAward, FiMessageSquare,FiSettings, FiDollarSign
 } from "react-icons/fi";
 
 export const participantMenuItems = [
@@ -11,5 +11,6 @@ export const participantMenuItems = [
   { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
   { id: "certificates", label: "گواهینامه‌ها", icon: <FiAward size={20} /> },
   { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 2 },
+  { id: "finance", label: "مالی", icon: <FiDollarSign size={20} /> },
   { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
 ];

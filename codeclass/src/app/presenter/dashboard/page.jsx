@@ -3,18 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FiHome,
   FiBookOpen,
-  FiPlusCircle,
-  FiCalendar,
-  FiBarChart2,
-  FiMessageSquare,
-  FiSettings,
-  FiBell,
   FiUsers,
   FiVideo,
   FiClock,
-  FiMenu,
+  FiDollarSign,
+  FiTrendingUp,
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
@@ -29,7 +23,7 @@ export default function PresenterDashboard() {
     { title: "جلسات این هفته", value: "۱۲", icon: <FiClock size={22} />, color: "text-blue-500" },
     { title: "کلاس‌های فعال", value: "۸", icon: <FiVideo size={22} />, color: "text-purple-500" },
     { title: "کل دانشجویان", value: "۲۳۶", icon: <FiUsers size={22} />, color: "text-green-500" },
-    { title: "کل کلاس‌ها", value: "۵", icon: <FiBookOpen size={22} />, color: "text-orange-500" },
+    { title: "درآمد این ماه", value: "۱۲.۴M", icon: <FiDollarSign size={22} />, color: "text-emerald-500" },
   ];
 
   const classes = [
@@ -57,7 +51,6 @@ export default function PresenterDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
-      {/* Sidebar */}
       <Sidebar
         activeMenu="dashboard"
         setActiveMenu={setActiveMenu}
@@ -66,13 +59,11 @@ export default function PresenterDashboard() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main Content */}
       <main className="flex-1 lg:mr-64 transition-all duration-300">
-        {/* Header */}
-        <PresenterHeader></PresenterHeader>
+        <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
 
         <div className="p-4 sm:p-6 lg:p-8">
-          {/* Greeting */}
+          {/* greeting */}
           <div className="mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
               سلام سارا احمدی 👋
@@ -80,8 +71,8 @@ export default function PresenterDashboard() {
             <p className="text-gray-500 mt-1 text-sm sm:text-base">خوش آمدید به داشبوردتان</p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-8">
+          {/* stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-4">
             {stats.map((stat, index) => (
               <div
                 key={index}
@@ -98,13 +89,34 @@ export default function PresenterDashboard() {
             ))}
           </div>
 
-          {/* list of classes */}
+          {/* mini insight from reports */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 sm:px-5 py-3 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <FiTrendingUp className="text-purple-500" size={18} />
+              <span>نرخ تکمیل کلاس‌ها</span>
+              <span className="font-bold text-gray-800">۸۷٪</span>
+            </div>
+            <div className="flex-1 max-w-xs bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div className="bg-purple-500 h-2 rounded-full" style={{ width: "87%" }} />
+            </div>
+            <button
+              onClick={() => router.push("/presenter/finance")}
+              className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+            >
+              جزئیات مالی →
+            </button>
+          </div>
+
+          {/* classes */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100">
               <h2 className="text-base sm:text-lg font-bold text-gray-800">کلاس‌های من</h2>
-              <button 
-              onClick={() => router.push("/presenter/my-classes")}
-              className="text-sm text-blue-600 hover:underline">مشاهده همه</button>
+              <button
+                onClick={() => router.push("/presenter/my-classes")}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                مشاهده همه
+              </button>
             </div>
 
             <div className="divide-y divide-gray-100">
@@ -115,13 +127,8 @@ export default function PresenterDashboard() {
                 >
                   <div className="flex items-center gap-4 flex-1">
                     <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden flex-shrink-0 ${cls.color}`}>
-                      <img
-                        src={cls.image}
-                        alt={cls.title}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={cls.image} alt={cls.title} className="w-full h-full object-cover" />
                     </div>
-
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-800 text-sm sm:text-base truncate">{cls.title}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 mt-1">{cls.category}</p>
@@ -135,14 +142,14 @@ export default function PresenterDashboard() {
                       </div>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
                     <span className="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
                       {cls.status}
                     </span>
                     <button
-                    onClick={() => router.push(`/presenter/my-classes/${cls.id}`)} 
-                    className="text-xs sm:text-sm bg-blue-50 text-blue-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl hover:bg-blue-100 transition">
+                      onClick={() => router.push(`/presenter/my-classes/${cls.id}`)}
+                      className="text-xs sm:text-sm bg-blue-50 text-blue-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl hover:bg-blue-100 transition"
+                    >
                       مدیریت کلاس
                     </button>
                   </div>
@@ -151,10 +158,10 @@ export default function PresenterDashboard() {
             </div>
           </div>
 
-          {/* webinars section */}
+          {/* webinars */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden my-6">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="font-bold text-gray-800 flex items-center gap-2">وبینارهای من</h2>
+              <h2 className="font-bold text-gray-800">وبینارهای من</h2>
               <button
                 onClick={() => router.push("/presenter/webinars")}
                 className="text-sm text-blue-600 hover:underline"
@@ -177,9 +184,7 @@ export default function PresenterDashboard() {
                   </div>
                   <span
                     className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
-                      w.status === "live"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-blue-100 text-blue-700"
+                      w.status === "live" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                     }`}
                   >
                     {w.status === "live" ? "زنده" : "آینده"}
