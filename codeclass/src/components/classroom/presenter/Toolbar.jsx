@@ -10,7 +10,9 @@ function ToolBtn({ id, icon, title, tool, setTool }) {
     <button
       onClick={() => setTool(id)}
       title={title}
-      className={`p-2 rounded-lg flex-shrink-0 ${tool === id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-100"}`}
+      className={`p-2 rounded-lg flex-shrink-0 ${
+        tool === id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-100"
+      }`}
     >
       {icon}
     </button>
@@ -54,8 +56,20 @@ export default function Toolbar({
             <ToolBtn id="text" icon={<FiType size={15} />} title="متن" tool={tool} setTool={setTool} />
             {["pen", "highlighter", "text"].includes(tool) && (
               <div className="flex items-center gap-1 mr-1 flex-shrink-0">
-                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-6 h-6 rounded border-0 cursor-pointer" />
-                <input type="range" min="1" max="12" value={size} onChange={(e) => setSize(+e.target.value)} className="w-12 md:w-14" />
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  className="w-6 h-6 rounded border-0 cursor-pointer"
+                />
+                <input
+                  type="range"
+                  min="1"
+                  max="12"
+                  value={size}
+                  onChange={(e) => setSize(+e.target.value)}
+                  className="w-12 md:w-14"
+                />
               </div>
             )}
             <button
@@ -74,7 +88,9 @@ export default function Toolbar({
         )}
         <button
           onClick={toggleRec}
-          className={`p-2 rounded-lg flex-shrink-0 ${recording ? "bg-red-50 text-red-600" : "text-gray-600 hover:bg-gray-100"}`}
+          className={`p-2 rounded-lg flex-shrink-0 ${
+            recording ? "bg-red-50 text-red-600" : "text-gray-600 hover:bg-gray-100"
+          }`}
         >
           <FiCircle size={15} className={recording ? "fill-red-600" : ""} />
         </button>
@@ -82,7 +98,6 @@ export default function Toolbar({
 
       {/* Mode switch */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0">
-        {/* Mobile only: Video/Chat tab */}
         <button
           onClick={() => setMode("media")}
           className={`md:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
@@ -131,15 +146,19 @@ export default function Toolbar({
         </button>
       </div>
 
-      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-        <button onClick={onOpenSettings} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-          <FiSettings size={15} />
+      {/* right actions — smaller on mobile */}
+      <div className="flex items-center gap-0.5 md:gap-2 flex-shrink-0">
+        <button
+          onClick={onOpenSettings}
+          className="p-1.5 md:p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+        >
+          <FiSettings className="w-3.5 h-3.5 md:w-[15px] md:h-[15px]" />
         </button>
         <button
           onClick={onExit}
-          className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-2.5 md:px-3 py-1.5 rounded-xl text-xs font-medium"
+          className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-xl text-[11px] md:text-xs font-medium"
         >
-          <FiPhoneOff size={13} />
+          <FiPhoneOff className="w-3 h-3 md:w-[13px] md:h-[13px]" />
           <span className="hidden sm:inline">خروج از کلاس</span>
         </button>
       </div>

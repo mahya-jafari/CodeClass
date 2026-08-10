@@ -1,77 +1,100 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaLaptopCode } from "react-icons/fa";
+import { useLoginMutation } from "@/store/api/authApi";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/features/auth/authSlice";
 
 export default function LoginPage() {
-  const [activeTab, setActiveTab] = useState('presenter');
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [login, { isLoading, error }] = useLoginMutation();
+
+  const [activeTab, setActiveTab] = useState("presenter");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!email.trim() || !password.trim()) {
+      setFormError("ایمیل و رمز عبور را وارد کنید");
+      return;
+    }
+
+    try {
+      const data = await login({
+        email: email.trim(),
+        password,
+        role: activeTab,
+      }).unwrap();
+
+      dispatch(setCredentials(data));
+
+      router.push(
+        data.user.role === "presenter"
+          ? "/presenter/dashboard"
+          : "/participant/dashboard"
+      );
+    } catch (err) {
+      setFormError(err?.data?.message || "ورود ناموفق بود");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-10 via-blue-100 to-blue-80 p-4">
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row min-h-[700px]">
-
-        {/* form*/}
         <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center" dir="rtl">
-          
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
               ورود به حساب کاربری
             </h1>
-            
-            {/* icon + name */}
             <div className="flex items-center justify-center gap-2 mt-2">
               <span className="text-blue-600 font-semibold text-xl">CodeClass</span>
               <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white">
                 <FaLaptopCode size={22} />
               </div>
             </div>
-          </div>    
+          </div>
 
           {/* tabs */}
           <div className="flex border-b border-gray-200 mb-8">
-            <button
-              onClick={() => setActiveTab('presenter')}
-              className={`flex-1 py-3 text-center font-medium transition-colors relative ${
-                activeTab === 'presenter'
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              ارائه‌دهنده
-              {activeTab === 'presenter' && (
-                <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-600"></span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('participant')}
-              className={`flex-1 py-3 text-center font-medium transition-colors relative ${
-                activeTab === 'participant'
-                  ? 'text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              شرکت‌کننده
-              {activeTab === 'participant' && (
-                <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-600"></span>
-              )}
-            </button>
+            {["presenter", "participant"].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 py-3 text-center font-medium transition-colors relative ${
+                  activeTab === tab ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab === "presenter" ? "ارائه‌دهنده" : "شرکت‌کننده"}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-600" />
+                )}
+              </button>
+            ))}
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 ایمیل یا شماره موبایل
               </label>
-               <input
+              <input
                 type="text"
-                placeholder="example@gmail.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-left dir-ltr"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="presenter@test.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
                 dir="ltr"
-                />
+              />
             </div>
 
             <div>
@@ -109,7 +132,7 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded"
                 />
                 <span className="text-gray-600">مرا به‌خاطر بسپار</span>
               </label>
@@ -118,29 +141,31 @@ export default function LoginPage() {
               </a>
             </div>
 
+            {(formError || error) && (
+              <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">
+                {formError || error?.data?.message}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3.5 rounded-xl transition-colors shadow-md hover:shadow-lg"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-3.5 rounded-xl transition shadow-md"
             >
-              ورود
+              {isLoading ? "در حال ورود..." : "ورود"}
             </button>
           </form>
 
           <p className="text-center mt-8 text-gray-600 text-sm">
-            حساب کاربری ندارید؟{' '}
+            حساب کاربری ندارید؟{" "}
             <a href="/register" className="text-blue-600 font-medium hover:underline">
               ثبت‌نام کنید
             </a>
           </p>
         </div>
-           
-        {/* picture */}   
+
         <div className="hidden lg:block lg:w-1/2 relative min-h-full">
-          <img
-            src="/login.png"
-            alt="CodeClass"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          <img src="/login.png" alt="CodeClass" className="absolute inset-0 w-full h-full object-cover" />
         </div>
       </div>
     </div>

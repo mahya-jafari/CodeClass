@@ -2,13 +2,66 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FaLaptopCode } from "react-icons/fa";
+import { useRegisterMutation } from "@/store/api/authApi";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/features/auth/authSlice";
 
 export default function RegisterPage() {
-  const [activeTab, setActiveTab] = useState('presenter'); 
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [register, { isLoading }] = useRegisterMutation();
+
+  const [activeTab, setActiveTab] = useState('presenter');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const onChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!form.name.trim() || !form.email.trim() || !form.password) {
+      setFormError("فیلدهای ضروری را پر کنید");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setFormError("رمز عبور و تکرار آن یکسان نیست");
+      return;
+    }
+
+    try {
+      const data = await register({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        password: form.password,
+        role: activeTab,
+      }).unwrap();
+
+      dispatch(setCredentials(data));
+      router.push(
+        data.user.role === "presenter"
+          ? "/presenter/dashboard"
+          : "/participant/dashboard"
+      );
+    } catch (err) {
+      setFormError(err?.data?.message || "ثبت‌نام ناموفق بود");
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-10 via-blue-100 to-blue-80 p-4">
@@ -33,6 +86,7 @@ export default function RegisterPage() {
           {/* tabs */}
           <div className="flex border-b border-gray-200 mb-7">
             <button
+              type="button"
               onClick={() => setActiveTab('presenter')}
               className={`flex-1 py-3 text-center font-medium transition-colors relative ${
                 activeTab === 'presenter'
@@ -46,6 +100,7 @@ export default function RegisterPage() {
               )}
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('participant')}
               className={`flex-1 py-3 text-center font-medium transition-colors relative ${
                 activeTab === 'participant'
@@ -61,11 +116,14 @@ export default function RegisterPage() {
           </div>
 
           {/* form */}
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleRegister}>
             
             <div className="relative">
               <input
                 type="text"
+                name="name"
+                value={form.name}
+                onChange={onChange}
                 placeholder="نام و نام خانوادگی"
                 className="w-full px-4 py-3 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
@@ -79,6 +137,9 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type="email"
+                name="email"
+                value={form.email}
+                onChange={onChange}
                 placeholder="ایمیل"
                 className="w-full px-4 py-3 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
@@ -92,6 +153,9 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={onChange}
                 placeholder="شماره تماس"
                 dir="rtl"
                 className="w-full px-4 py-3 pr-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
@@ -106,6 +170,9 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={form.password}
+                onChange={onChange}
                 placeholder="رمز عبور"
                 className="w-full px-4 py-3 pr-11 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
@@ -135,6 +202,9 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={form.confirmPassword}
+                onChange={onChange}
                 placeholder="تکرار رمز عبور"
                 className="w-full px-4 py-3 pr-11 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
               />
@@ -174,11 +244,18 @@ export default function RegisterPage() {
               </label>
             </div>
 
+            {formError && (
+              <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">
+                {formError}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-2"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg mt-2"
             >
-              ثبت‌نام
+              {isLoading ? "در حال ثبت‌نام..." : "ثبت‌نام"}
             </button>
           </form>
 

@@ -67,14 +67,19 @@ export default function ParticipantFinancePage() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">مالی</h1>
-              <p className="text-gray-500 mt-1 text-sm">کیف پول، پرداخت‌ها و فاکتورها</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">مالی</h1>
+                <p className="text-gray-500 mt-1 text-sm">کیف پول، پرداخت‌ها و فاکتورها</p>
             </div>
-            <button onClick={() => setChargeOpen(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">
-              <FiPlus size={16} /> شارژ کیف پول
-            </button>
-          </div>
+
+            <div className="flex justify-end">
+                <button
+                onClick={() => setChargeOpen(true)}
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition"
+                >
+                <FiPlus size={16} /> شارژ کیف پول
+                </button>
+            </div>
+            </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
             {summary.map((s, i) => (
