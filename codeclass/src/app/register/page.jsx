@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaLaptopCode } from "react-icons/fa";
-import { useRegisterMutation } from "@/store/api/authApi";
+import { useRegisterMutation } from "@/store/api/authApis";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/authSlice";
 

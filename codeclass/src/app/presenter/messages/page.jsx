@@ -2,13 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import {
-  FiHome, FiBookOpen, FiPlusCircle, FiCalendar, FiBarChart2,
-  FiMessageSquare, FiSettings, FiSearch, FiX
-} from "react-icons/fi";
+import { FiSearch, FiX } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import { useGetMessagesQuery } from "../../../store/api/presenterApis";
 
 export default function MessagesPage() {
   const router = useRouter();
@@ -16,11 +14,7 @@ export default function MessagesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const messages = [
-    { id: 1, name: "محیا جعفری", message: "سلام، جلسه بعدی چه زمانی برگزار می‌شود؟", time: "۱۰ دقیقه پیش", unread: true },
-    { id: 2, name: "محمد رضایی", message: "فایل‌های جلسه قبل رو می‌تونم دریافت کنم؟", time: "۱ ساعت پیش", unread: true },
-    { id: 3, name: "نگار محمدی", message: "ممنون از کلاس عالی امروز", time: "دیروز", unread: false },
-  ];
+  const { data: messages = [] } = useGetMessagesQuery();
 
   const normalize = (text) =>
     text.toLowerCase().replace(/آ/g, "ا").replace(/أ|إ|ؤ|ئ/g, "ا").trim();
@@ -31,7 +25,7 @@ export default function MessagesPage() {
     return messages.filter(
       (m) => normalize(m.name).includes(q) || normalize(m.message).includes(q)
     );
-  }, [search]);
+  }, [search, messages]);
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">

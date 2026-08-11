@@ -10,6 +10,11 @@ import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import {
+  useGetWebinarsQuery,
+  useCreateWebinarMutation,
+  useDeleteWebinarMutation,
+} from "../../../store/api/presenterApis"; 
 
 export default function WebinarsPage() {
   const router = useRouter();
@@ -21,38 +26,9 @@ export default function WebinarsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({ title: "", details: "", date: "", time: "", capacity: "" });
 
-  const [webinars, setWebinars] = useState([
-    {
-      id: 1,
-      title: "آشنایی با React 19 و قابلیت‌های جدید",
-      date: "۱۴۰۵/۰۲/۱۵",
-      time: "۱۸:۰۰",
-      capacity: 200,
-      registered: 87,
-      status: "upcoming",
-      duration: "۹۰ دقیقه",
-    },
-    {
-      id: 2,
-      title: "وبینار رایگان JavaScript پیشرفته",
-      date: "۱۴۰۵/۰۲/۱۰",
-      time: "۱۷:۰۰",
-      capacity: 150,
-      registered: 142,
-      status: "live",
-      duration: "۶۰ دقیقه",
-    },
-    {
-      id: 3,
-      title: "مسیر شغلی برنامه‌نویسی فرانت‌اند",
-      date: "۱۴۰۵/۰۱/۲۰",
-      time: "۱۹:۰۰",
-      capacity: 300,
-      registered: 256,
-      status: "ended",
-      duration: "۷۵ دقیقه",
-    },
-  ]);
+  const { data: webinars = [] } = useGetWebinarsQuery();
+  const [createWebinar] = useCreateWebinarMutation();
+  const [deleteWebinar] = useDeleteWebinarMutation();
 
   const normalize = (t) =>
     t.toLowerCase().replace(/آ/g, "ا").replace(/أ|إ|ؤ|ئ/g, "ا").trim();
@@ -72,28 +48,15 @@ export default function WebinarsPage() {
     ended: { label: "پایان‌یافته", cls: "bg-gray-100 text-gray-600" },
   };
 
-  const createWebinar = () => {
+  const handleCreate = async () => {
     if (!form.title.trim()) return;
-    setWebinars((prev) => [
-      {
-        id: Date.now(),
-        title: form.title,
-        details: form.details,
-        date: form.date || "—",
-        time: form.time || "—",
-        capacity: Number(form.capacity) || 100,
-        registered: 0,
-        status: "upcoming",
-        duration: "۶۰ دقیقه",
-      },
-      ...prev,
-    ]);
+    await createWebinar(form);
     setForm({ title: "", details: "", date: "", time: "", capacity: "" });
     setCreateOpen(false);
   };
 
-  const confirmDelete = () => {
-    setWebinars((prev) => prev.filter((w) => w.id !== deleteModal.id));
+  const confirmDelete = async () => {
+    await deleteWebinar(deleteModal.id);
     setDeleteModal({ open: false, id: null, title: "" });
   };
 
@@ -276,13 +239,13 @@ export default function WebinarsPage() {
               <div>
                 <label className="text-sm text-gray-600 mb-1.5 block">جزئیات وبینار</label>
                 <textarea
-                    value={form.details}
-                    onChange={(e) => setForm({ ...form, details: e.target.value })}
-                    placeholder="توضیحات کوتاه درباره موضوع و محتوای وبینار..."
-                    rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 resize-none"
+                  value={form.details}
+                  onChange={(e) => setForm({ ...form, details: e.target.value })}
+                  placeholder="توضیحات کوتاه درباره موضوع و محتوای وبینار..."
+                  rows={3}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 resize-none"
                 />
-                </div>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm text-gray-600 mb-1.5 block">تاریخ</label>
@@ -315,7 +278,7 @@ export default function WebinarsPage() {
               </div>
             </div>
             <button
-              onClick={createWebinar}
+              onClick={handleCreate}
               className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium transition"
             >
               ایجاد وبینار

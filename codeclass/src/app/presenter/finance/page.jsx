@@ -9,6 +9,13 @@ import {
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import {
+  useGetFinanceSummaryQuery,
+  useGetTransactionsQuery,
+  useGetBanksQuery,
+  useAddBankMutation,
+  useDeleteBankMutation,
+} from "../../../store/api/presenterApis";
 
 export default function PresenterFinancePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,22 +28,11 @@ export default function PresenterFinancePage() {
   const [receipt, setReceipt] = useState(null);
   const [bankForm, setBankForm] = useState({ name: "", sheba: "", card: "" });
 
-  const [banks, setBanks] = useState([
-    { id: 1, name: "بانک ملت", sheba: "IR120170000000123456789001", card: "۶۱۰۴-****-****-۱۲۳۴" },
-  ]);
-
-  const transactions = [
-    { id: 1, title: "فروش کلاس React پیشرفته", type: "income", source: "class", amount: 4500000, date: "۱۴۰۵/۰۲/۰۸", status: "موفق", detail: "۳ دانشجو × ۱,۵۰۰,۰۰۰" },
-    { id: 2, title: "برداشت به حساب بانکی", type: "withdraw", source: "withdraw", amount: 2000000, date: "۱۴۰۵/۰۲/۰۵", status: "موفق", detail: "بانک ملت - شبا IR12..." },
-    { id: 3, title: "فروش وبینار JavaScript", type: "income", source: "webinar", amount: 1800000, date: "۱۴۰۵/۰۲/۰۳", status: "موفق", detail: "۱۲ شرکت‌کننده" },
-    { id: 4, title: "کمیسیون پلتفرم", type: "withdraw", source: "commission", amount: 320000, date: "۱۴۰۵/۰۲/۰۱", status: "موفق", detail: "۱۰٪ از فروش‌ها" },
-  ];
-
-  const summary = [
-    { title: "موجودی قابل برداشت", value: "۱۲,۴۵۰,۰۰۰", icon: <FiDollarSign size={22} />, color: "text-green-600", bg: "bg-green-50" },
-    { title: "درآمد این ماه", value: "۸,۲۰۰,۰۰۰", icon: <FiTrendingUp size={22} />, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "در انتظار تسویه", value: "۳,۱۰۰,۰۰۰", icon: <FiCreditCard size={22} />, color: "text-orange-500", bg: "bg-orange-50" },
-  ];
+  const { data: summary = [] } = useGetFinanceSummaryQuery();
+  const { data: transactions = [] } = useGetTransactionsQuery();
+  const { data: banks = [] } = useGetBanksQuery();
+  const [addBankMutation] = useAddBankMutation();
+  const [deleteBankMutation] = useDeleteBankMutation();
 
   const sourceLabel = { class: "کلاس", webinar: "وبینار", commission: "کمیسیون", withdraw: "برداشت" };
   const sourceIcon = {
@@ -53,7 +49,7 @@ export default function PresenterFinancePage() {
       if (sourceFilter !== "all" && t.source !== sourceFilter) return false;
       return true;
     });
-  }, [tab, sourceFilter]);
+  }, [tab, sourceFilter, transactions]);
 
   const bySource = useMemo(() => {
     const map = { class: 0, webinar: 0, commission: 0 };
@@ -61,13 +57,17 @@ export default function PresenterFinancePage() {
       if (map[t.source] !== undefined) map[t.source] += t.amount;
     });
     return map;
-  }, []);
+  }, [transactions]);
 
-  const addBank = () => {
+  const addBank = async () => {
     if (!bankForm.name.trim() || !bankForm.sheba.trim()) return;
-    setBanks((p) => [...p, { id: Date.now(), ...bankForm }]);
+    await addBankMutation(bankForm);
     setBankForm({ name: "", sheba: "", card: "" });
     setBankModal(false);
+  };
+
+  const handleDeleteBank = async (id) => {
+    await deleteBankMutation(id);
   };
 
   const exportCSV = () => {
@@ -107,7 +107,6 @@ export default function PresenterFinancePage() {
             </div>
           </div>
 
-          {/* summary */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
             {summary.map((s, i) => (
               <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
@@ -115,13 +114,14 @@ export default function PresenterFinancePage() {
                   <p className="text-xs text-gray-500 mb-1">{s.title}</p>
                   <p className="text-xl font-bold text-gray-800">{s.value} <span className="text-xs font-normal text-gray-400">تومان</span></p>
                 </div>
-                <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center ${s.color}`}>{s.icon}</div>
+                <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center ${s.color}`}>
+                  {i === 0 ? <FiDollarSign size={22} /> : i === 1 ? <FiTrendingUp size={22} /> : <FiCreditCard size={22} />}
+                </div>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* income by source */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h2 className="font-bold text-gray-800 text-sm mb-4">تفکیک منبع درآمد</h2>
               <div className="space-y-3">
@@ -146,7 +146,6 @@ export default function PresenterFinancePage() {
               </div>
             </div>
 
-            {/* bank accounts */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-gray-800 text-sm">حساب‌های بانکی</h2>
@@ -165,7 +164,7 @@ export default function PresenterFinancePage() {
                       <p className="text-xs text-gray-500 truncate">{b.sheba}</p>
                       {b.card && <p className="text-xs text-gray-400">{b.card}</p>}
                     </div>
-                    <button onClick={() => setBanks((p) => p.filter((x) => x.id !== b.id))} className="p-2 text-gray-400 hover:text-red-500">
+                    <button onClick={() => handleDeleteBank(b.id)} className="p-2 text-gray-400 hover:text-red-500">
                       <FiTrash2 size={15} />
                     </button>
                   </div>
@@ -175,7 +174,6 @@ export default function PresenterFinancePage() {
             </div>
           </div>
 
-          {/* transactions */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
               <h2 className="font-bold text-gray-800">تراکنش‌ها</h2>
@@ -260,7 +258,6 @@ export default function PresenterFinancePage() {
         </div>
       </main>
 
-      {/* bank modal */}
       {bankModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setBankModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()} dir="rtl">
@@ -281,7 +278,6 @@ export default function PresenterFinancePage() {
         </div>
       )}
 
-      {/* receipt modal */}
       {receipt && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setReceipt(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()} dir="rtl">

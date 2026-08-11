@@ -3,32 +3,20 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  FiHome, FiBookOpen, FiPlusCircle, FiFileText, FiCalendar,
-  FiBarChart2, FiMessageSquare, FiSettings,
   FiArrowRight, FiSend, FiPaperclip, FiSmile, FiX, FiFile
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import {
+  useGetChatMessagesQuery,
+  useSendMessageMutation,
+} from "../../../../store/api/presenterApis";
 
 const USERS = {
   1: { name: "محیا جعفری", role: "دانشجو" },
   2: { name: "محمد رضایی", role: "دانشجو" },
   3: { name: "نگار محمدی", role: "دانشجو" },
-};
-
-const INITIAL_CHATS = {
-  1: [
-    { id: 1, text: "سلام، جلسه بعدی چه زمانی برگزار می‌شود؟", fromMe: false, time: "10:20" },
-    { id: 2, text: "سلام جلسه بعدی سه‌شنبه ساعت ۱۸ هست.", fromMe: true, time: "10:22" },
-  ],
-  2: [
-    { id: 1, text: "فایل‌های جلسه قبل رو می‌تونم دریافت کنم؟", fromMe: false, time: "09:15" },
-  ],
-  3: [
-    { id: 1, text: "ممنون از کلاس عالی امروز", fromMe: false, time: "دیروز" },
-    { id: 2, text: "خواهش می‌کنم نگار، موفق باشی 🌱", fromMe: true, time: "دیروز" },
-  ],
 };
 
 const EMOJIS = ["😀", "😂", "❤️", "👍", "🔥", "😊", "🎉", "👏", "🙏", "✨", "💯", "😎"];
@@ -47,8 +35,11 @@ export default function ChatPage() {
   const id = params.id;
   const user = USERS[id] || { name: "کاربر", role: "دانشجو" };
 
+  const { data: initialMessages = [] } = useGetChatMessagesQuery(id);
+  const [sendMessage] = useSendMessageMutation();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState(INITIAL_CHATS[id] || []);
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [file, setFile] = useState(null);
@@ -58,12 +49,14 @@ export default function ChatPage() {
   const fileRef = useRef(null);
   const replyTimer = useRef(null);
 
-  /* auto scroll */
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  /* cleanup timer on unmount */
   useEffect(() => {
     return () => {
       if (replyTimer.current) clearTimeout(replyTimer.current);
@@ -75,7 +68,6 @@ export default function ChatPage() {
     return `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
   };
 
-  /* simulate real-time incoming message */
   const simulateIncoming = useCallback(() => {
     setIsTyping(true);
     replyTimer.current = setTimeout(() => {
@@ -93,8 +85,17 @@ export default function ChatPage() {
     }, 1200 + Math.random() * 1000);
   }, []);
 
-  const send = () => {
+  const send = async () => {
     if (!text.trim() && !file) return;
+
+    const newMsg = {
+      text: text.trim(),
+      file: file
+        ? { name: file.name, url: URL.createObjectURL(file), type: file.type }
+        : null,
+    };
+
+    await sendMessage({ id, ...newMsg });
 
     setMessages((prev) => [
       ...prev,
@@ -103,22 +104,14 @@ export default function ChatPage() {
         text: text.trim(),
         fromMe: true,
         time: nowTime(),
-        file: file
-          ? { name: file.name, url: URL.createObjectURL(file), type: file.type }
-          : null,
+        file: newMsg.file,
       },
     ]);
     setText("");
     setFile(null);
     setShowEmoji(false);
 
-    /* fake real-time reply */
     simulateIncoming();
-
-    /*
-      TODO: when backend is ready, replace simulateIncoming with:
-      socket.emit("message", { chatId: id, text, file })
-    */
   };
 
   const addEmoji = (emoji) => setText((t) => t + emoji);
@@ -136,7 +129,6 @@ export default function ChatPage() {
       <main className="flex-1 lg:mr-64 transition-all duration-300 flex flex-col h-screen">
         <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
 
-        {/* chat header */}
         <header className="h-14 sm:h-16 bg-white border-b flex items-center gap-3 px-4 sm:px-6 flex-shrink-0">
           <button
             onClick={() => router.push("/presenter/messages")}
@@ -159,7 +151,6 @@ export default function ChatPage() {
           </div>
         </header>
 
-        {/* messages */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {messages.map((msg) => (
             <div
@@ -198,7 +189,6 @@ export default function ChatPage() {
             </div>
           ))}
 
-          {/* typing indicator */}
           {isTyping && (
             <div className="flex justify-end">
               <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
@@ -214,7 +204,6 @@ export default function ChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        {/* file preview */}
         {file && (
           <div className="px-4 py-2 bg-white border-t flex items-center gap-3">
             <FiFile className="text-blue-600" />
@@ -225,7 +214,6 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* emoji picker */}
         {showEmoji && (
           <div className="px-4 py-3 bg-white border-t flex flex-wrap gap-2">
             {EMOJIS.map((e) => (
@@ -240,7 +228,6 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* input */}
         <div className="bg-white border-t p-3 sm:p-4 flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setShowEmoji(!showEmoji)}

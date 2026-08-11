@@ -3,14 +3,17 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FiHome, FiBookOpen, FiPlusCircle, FiCalendar, FiBarChart2,
-  FiMessageSquare, FiSettings, FiSearch, FiFilter, FiUsers,
+  FiSearch, FiFilter, FiUsers,
   FiClock, FiPlus, FiX, FiTrash2
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import {
+  useGetMyClassesQuery,
+  useDeleteClassMutation,
+} from "../../../store/api/presenterApis";
 
 export default function MyClassesPage() {
   const router = useRouter();
@@ -21,12 +24,8 @@ export default function MyClassesPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: "" });
 
-  const [classes, setClasses] = useState([
-    { id: 1, title: "آموزش React از صفر تا پیشرفته", category: "برنامه‌نویسی وب", students: 24, sessions: 18, status: "فعال", image: "https://via.placeholder.com/80x80?text=React", color: "bg-blue-100" },
-    { id: 2, title: "جامع JavaScript", category: "برنامه‌نویسی وب", students: 31, sessions: 17, status: "فعال", image: "https://via.placeholder.com/80x80?text=JS", color: "bg-yellow-100" },
-    { id: 3, title: "Python برای مبتدیان", category: "برنامه‌نویسی", students: 18, sessions: 15, status: "فعال", image: "https://via.placeholder.com/80x80?text=Python", color: "bg-green-100" },
-    { id: 4, title: "طراحی رابط کاربری با Figma", category: "طراحی", students: 12, sessions: 10, status: "پایان‌یافته", image: "https://via.placeholder.com/80x80?text=Figma", color: "bg-purple-100" },
-  ]);
+  const { data: classes = [] } = useGetMyClassesQuery();
+  const [deleteClass] = useDeleteClassMutation();
 
   const normalize = (text) =>
     text.toLowerCase().replace(/آ/g, "ا").replace(/أ|إ|ؤ|ئ/g, "ا").trim();
@@ -48,8 +47,8 @@ export default function MyClassesPage() {
     setDeleteModal({ open: true, id, title });
   };
 
-  const confirmDelete = () => {
-    setClasses((prev) => prev.filter((c) => c.id !== deleteModal.id));
+  const confirmDelete = async () => {
+    await deleteClass(deleteModal.id);
     setDeleteModal({ open: false, id: null, title: "" });
   };
 

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FiBookOpen,
   FiUsers,
   FiVideo,
   FiClock,
@@ -13,41 +12,33 @@ import {
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import {
+  useGetDashboardStatsQuery,
+  useGetDashboardClassesQuery,
+  useGetDashboardWebinarsQuery,
+} from "../../../store/api/presenterApis";
 
 export default function PresenterDashboard() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
-  const stats = [
-    { title: "جلسات این هفته", value: "۱۲", icon: <FiClock size={22} />, color: "text-blue-500" },
-    { title: "کلاس‌های فعال", value: "۸", icon: <FiVideo size={22} />, color: "text-purple-500" },
-    { title: "کل دانشجویان", value: "۲۳۶", icon: <FiUsers size={22} />, color: "text-green-500" },
-    { title: "درآمد این ماه", value: "۱۲.۴M", icon: <FiDollarSign size={22} />, color: "text-emerald-500" },
-  ];
+  const { data: statsData = [] } = useGetDashboardStatsQuery();
+  const { data: classes = [] } = useGetDashboardClassesQuery();
+  const { data: webinars = [] } = useGetDashboardWebinarsQuery();
 
-  const classes = [
-    {
-      id: 1,
-      title: "آموزش React از صفر تا پیشرفته",
-      category: "برنامه‌نویسی وب",
-      students: 24,
-      sessions: 18,
-      status: "فعال",
-      image: "https://via.placeholder.com/80x80?text=React",
-      color: "bg-blue-100",
-    },
-    {
-      id: 2,
-      title: "جامع JavaScript",
-      category: "برنامه‌نویسی وب",
-      students: 31,
-      sessions: 17,
-      status: "فعال",
-      image: "https://via.placeholder.com/80x80?text=JS",
-      color: "bg-yellow-100",
-    },
-  ];
+  const stats = statsData.map((stat, index) => {
+    const icons = [
+      <FiClock size={22} key="clock" />,
+      <FiVideo size={22} key="video" />,
+      <FiUsers size={22} key="users" />,
+      <FiDollarSign size={22} key="dollar" />,
+    ];
+    return {
+      ...stat,
+      icon: icons[index],
+    };
+  });
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
@@ -170,10 +161,7 @@ export default function PresenterDashboard() {
               </button>
             </div>
             <div className="divide-y divide-gray-100">
-              {[
-                { id: 2, title: "وبینار رایگان JavaScript پیشرفته", status: "live", time: "الان" },
-                { id: 1, title: "آشنایی با React 19", status: "upcoming", time: "سه‌شنبه ۱۸:۰۰" },
-              ].map((w) => (
+              {webinars.map((w) => (
                 <div key={w.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition">
                   <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
                     <FiVideo size={18} />

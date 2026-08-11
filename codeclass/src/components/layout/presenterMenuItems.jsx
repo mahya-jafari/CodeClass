@@ -10,7 +10,7 @@ export const presenterMenuItems = [
   { id: "webinars", label: "وبینارها", icon: <FiVideo size={20} /> },
   { id: "pamphlets", label: "جزوات درسی", icon: <FiFileText size={20} /> },
   { id: "calendar", label: "تقویم جلسات", icon: <FiCalendar size={20} /> },
-  { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 3 },
+  { id: "messages", label: "پیام‌ها", icon: <FiMessageSquare size={20} />, badge: 1 },
   { id: "finance", label: "مالی", icon: <FiDollarSign size={20} /> },
   { id: "settings", label: "تنظیمات", icon: <FiSettings size={20} /> },
 ];

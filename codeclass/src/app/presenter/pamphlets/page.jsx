@@ -2,14 +2,17 @@
 
 import { useState, useRef, useMemo } from "react";
 import {
-  FiHome, FiBookOpen, FiPlusCircle, FiCalendar, FiBarChart2,
-  FiMessageSquare, FiSettings, FiSearch, FiUpload, FiFile,
-  FiDownload, FiTrash2, FiX, FiEye, FiFilter, FiFileText
+  FiSearch, FiUpload, FiFile, FiDownload, FiTrash2, FiX, FiEye, FiFilter, FiFileText
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import {
+  useGetPamphletsQuery,
+  useUploadPamphletMutation,
+  useDeletePamphletMutation,
+} from "../../../store/api/presenterApis";
 
 export default function PamphletsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,32 +23,15 @@ export default function PamphletsPage() {
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null, title: "" });
   const fileRef = useRef(null);
 
+  const { data: pamphlets = [] } = useGetPamphletsQuery();
+  const [uploadPamphlet] = useUploadPamphletMutation();
+  const [deletePamphlet] = useDeletePamphletMutation();
+
   const classOptions = [
     "آموزش React از صفر تا پیشرفته",
     "جامع JavaScript",
     "Python برای مبتدیان",
   ];
-
-  const [pamphlets, setpamphlets] = useState([
-    {
-      id: 1,
-      title: "جزوه جلسه ۱ - مقدمه React",
-      className: "آموزش React از صفر تا پیشرفته",
-      type: "pdf",
-      size: "2.4 MB",
-      date: "۱۴۰۵/۰۱/۱۲",
-      url: "#",
-    },
-    {
-      id: 2,
-      title: "تمرین Async/Await",
-      className: "جامع JavaScript",
-      type: "docx",
-      size: "1.2 MB",
-      date: "۱۴۰۵/۰۱/۱۰",
-      url: "#",
-    },
-  ]);
 
   const normalize = (t) =>
     t.toLowerCase().replace(/آ/g, "ا").replace(/أ|إ|ؤ|ئ/g, "ا").trim();
@@ -60,23 +46,18 @@ export default function PamphletsPage() {
     });
   }, [search, classFilter, pamphlets]);
 
-  /* upload handler */
-  const handleUpload = (fileList) => {
+  const handleUpload = async (fileList) => {
     const f = fileList?.[0];
     if (!f) return;
     const ext = f.name.split(".").pop()?.toLowerCase() || "file";
-    setpamphlets((prev) => [
-      {
-        id: Date.now(),
-        title: f.name.replace(/\.[^/.]+$/, ""),
-        className: classFilter === "all" ? "بدون کلاس" : classFilter,
-        type: ext,
-        size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
-        date: new Date().toLocaleDateString("fa-IR"),
-        url: URL.createObjectURL(f),
-      },
-      ...prev,
-    ]);
+    await uploadPamphlet({
+      title: f.name.replace(/\.[^/.]+$/, ""),
+      className: classFilter === "all" ? "بدون کلاس" : classFilter,
+      type: ext,
+      size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
+      date: new Date().toLocaleDateString("fa-IR"),
+      url: URL.createObjectURL(f),
+    });
   };
 
   const onFileInput = (e) => {
@@ -90,8 +71,8 @@ export default function PamphletsPage() {
     handleUpload(e.dataTransfer.files);
   };
 
-  const confirmDelete = () => {
-    setpamphlets((prev) => prev.filter((m) => m.id !== deleteModal.id));
+  const confirmDelete = async () => {
+    await deletePamphlet(deleteModal.id);
     setDeleteModal({ open: false, id: null, title: "" });
   };
 
@@ -112,14 +93,11 @@ export default function PamphletsPage() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* main area */}
       <main className="flex-1 lg:mr-64 transition-all duration-300">
-        {/* center the whole page block */}
         <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
         <div className="min-h-screen flex flex-col items-center">
           <div className="w-full max-w-5xl">
             <div className="p-4 sm:p-6 lg:p-8">
-              {/* page title */}
               <div className="mb-6 sm:mb-8">
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-800">جزوات درسی</h1>
                 <p className="text-gray-500 mt-1 text-sm">
@@ -127,7 +105,6 @@ export default function PamphletsPage() {
                 </p>
               </div>
 
-              {/* stats row */}
               <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
                 {[
                   { label: "کل جزوات", value: pamphlets.length, color: "text-blue-600" },
@@ -144,7 +121,6 @@ export default function PamphletsPage() {
                 ))}
               </div>
 
-              {/* search + filter */}
               <div className="flex flex-col sm:flex-row gap-3 mb-5">
                 <div className="relative flex-1">
                   <FiSearch
@@ -219,7 +195,6 @@ export default function PamphletsPage() {
                 </div>
               </div>
 
-              {/* pamphlets cards */}
               <div className="space-y-3 mb-8">
                 {filtered.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
@@ -234,7 +209,6 @@ export default function PamphletsPage() {
                       key={m.id}
                       className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4"
                     >
-                      {/* icon + info */}
                       <div className="flex items-center gap-3.5 flex-1 min-w-0">
                         <div
                           className={`w-12 h-12 rounded-xl bg-gradient-to-br ${typeStyle(m.type)} flex items-center justify-center text-white shadow-sm flex-shrink-0`}
@@ -257,7 +231,6 @@ export default function PamphletsPage() {
                         </div>
                       </div>
 
-                      {/* actions */}
                       <div className="flex items-center gap-2 self-end sm:self-auto">
                         <a
                           href={m.url}
@@ -290,7 +263,6 @@ export default function PamphletsPage() {
                 )}
               </div>
 
-              {/* upload drop zone */}
               <div
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => {
@@ -337,7 +309,6 @@ export default function PamphletsPage() {
         </div>
       </main>
 
-      {/* delete modal */}
       <ConfirmModal
         open={deleteModal.open}
         title="حذف جزوه"

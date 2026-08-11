@@ -1,24 +1,18 @@
 'use client';
 
 import { useState } from "react";
-import {
-  FiHome, FiBookOpen, FiPlusCircle, FiCalendar, FiBarChart2,
-  FiMessageSquare, FiSettings, FiMenu
-} from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
+import { useGetPresenterCalendarQuery } from "../../../store/api/presenterApis"; 
 
 export default function CalendarPage() {
   const [activeMenu, setActiveMenu] = useState("calendar");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const { data: sessions = [], isLoading } = useGetPresenterCalendarQuery();
+
   const days = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
-  const sessions = [
-    { day: 1, time: "۱۰:۰۰", title: "React - جلسه ۱۲", color: "bg-blue-100 text-blue-700" },
-    { day: 2, time: "۱۶:۰۰", title: "JavaScript - جلسه ۹", color: "bg-yellow-100 text-yellow-700" },
-    { day: 4, time: "۱۱:۰۰", title: "Python - جلسه ۷", color: "bg-green-100 text-green-700" },
-  ];
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
@@ -52,12 +46,14 @@ export default function CalendarPage() {
                 {Array.from({ length: 7 }).map((_, index) => (
                   <div key={index} className="border-l border-gray-100 p-2 sm:p-3 min-h-[100px]">
                     <div className="text-xs text-gray-400 mb-2">{index + 1}</div>
-                    {sessions.filter((s) => s.day === index + 1).map((s, i) => (
-                      <div key={i} className={`text-xs p-2 rounded-lg mb-2 ${s.color}`}>
-                        <div className="font-medium">{s.time}</div>
-                        <div className="truncate">{s.title}</div>
-                      </div>
-                    ))}
+                    {sessions
+                      .filter((s) => s.day === index + 1)
+                      .map((s, i) => (
+                        <div key={i} className={`text-xs p-2 rounded-lg mb-2 ${s.color}`}>
+                          <div className="font-medium">{s.time}</div>
+                          <div className="truncate">{s.title}</div>
+                        </div>
+                      ))}
                   </div>
                 ))}
               </div>

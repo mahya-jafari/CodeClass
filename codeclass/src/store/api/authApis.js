@@ -2,6 +2,7 @@ import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // ===== Auth =====
     login: builder.mutation({
       query: (body) => ({
         url: "/auth/login",
@@ -16,8 +17,11 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
-  }),
   overrideExisting: true,
+  })
 });
 
-export const { useLoginMutation, useRegisterMutation } = authApi;
+export const {
+  useLoginMutation,
+  useRegisterMutation,
+} = authApi;

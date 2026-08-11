@@ -3,104 +3,42 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
-  FiHome, FiBookOpen, FiPlusCircle, FiCalendar, FiBarChart2,
-  FiMessageSquare, FiSettings, FiUsers, FiClock, FiCalendar as FiCal,
-  FiEdit2, FiTrash2, FiPlay, FiPlus, FiArrowRight
+  FiBookOpen, FiUsers, FiClock, FiCalendar as FiCal,
+  FiEdit2, FiTrash2, FiPlay, FiPlus,
 } from "react-icons/fi";
 import Sidebar from "@/components/layout/presenterSidebar";
 import PresenterHeader from "@/components/layout/presenterHeader";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { presenterMenuItems } from "@/components/layout/presenterMenuItems";
-
-const CLASSES_DATA = {
-  1: {
-    id: 1,
-    title: "آموزش React از صفر تا پیشرفته",
-    category: "برنامه‌نویسی وب",
-    students: 24,
-    sessions: 18,
-    status: "فعال",
-    level: "متوسط تا پیشرفته",
-    price: "۴,۵۰۰,۰۰۰ تومان",
-    description: "در این دوره از صفر تا صد React را یاد می‌گیرید. شامل Hooks، Context، Router و پروژه‌های واقعی.",
-    image: "https://via.placeholder.com/400x220?text=React",
-    nextSession: "سه‌شنبه ۱۸:۰۰",
-    studentsList: ["سارا احمدی", "محمد رضایی", "نگار محمدی", "علی کیانی"],
-    sessionsList: [
-      { id: 1, title: "مقدمه و نصب محیط", date: "۱۴۰۵/۰۱/۱۲", done: true },
-      { id: 2, title: "کامپوننت‌ها و Props", date: "۱۴۰۵/۰۱/۱۵", done: true },
-      { id: 3, title: "State و Lifecycle", date: "۱۴۰۵/۰۱/۱۹", done: false },
-      { id: 4, title: "Hooks پیشرفته", date: "۱۴۰۵/۰۱/۲۲", done: false },
-    ],
-  },
-  2: {
-    id: 2,
-    title: "جامع JavaScript",
-    category: "برنامه‌نویسی وب",
-    students: 31,
-    sessions: 17,
-    status: "فعال",
-    level: "مبتدی تا متوسط",
-    price: "۳,۸۰۰,۰۰۰ تومان",
-    description: "آموزش کامل جاوااسکریپت مدرن از پایه تا مفاهیم پیشرفته.",
-    image: "https://via.placeholder.com/400x220?text=JS",
-    nextSession: "یکشنبه ۱۷:۰۰",
-    studentsList: ["رضا موسوی", "مینا کریمی"],
-    sessionsList: [
-      { id: 1, title: "متغیرها و انواع داده", date: "۱۴۰۵/۰۱/۱۰", done: true },
-      { id: 2, title: "توابع و Scope", date: "۱۴۰۵/۰۱/۱۴", done: false },
-    ],
-  },
-  3: {
-    id: 3,
-    title: "Python برای مبتدیان",
-    category: "برنامه‌نویسی",
-    students: 18,
-    sessions: 15,
-    status: "فعال",
-    level: "مبتدی",
-    price: "۳,۲۰۰,۰۰۰ تومان",
-    description: "شروع برنامه‌نویسی با پایتون به زبان ساده.",
-    image: "https://via.placeholder.com/400x220?text=Python",
-    nextSession: "دوشنبه ۱۹:۰۰",
-    studentsList: ["حسین نوری"],
-    sessionsList: [
-      { id: 1, title: "نصب و اولین برنامه", date: "۱۴۰۵/۰۱/۱۱", done: true },
-    ],
-  },
-  4: {
-    id: 4,
-    title: "طراحی رابط کاربری با Figma",
-    category: "طراحی",
-    students: 12,
-    sessions: 10,
-    status: "پایان‌یافته",
-    level: "مبتدی",
-    price: "۲,۹۰۰,۰۰۰ تومان",
-    description: "طراحی UI/UX حرفه‌ای با فیگما.",
-    image: "https://via.placeholder.com/400x220?text=Figma",
-    nextSession: "—",
-    studentsList: ["مینا احمدی"],
-    sessionsList: [
-      { id: 1, title: "آشنایی با فیگما", date: "۱۴۰۴/۱۲/۰۵", done: true },
-    ],
-  },
-};
+import {
+  useGetClassDetailQuery,
+  useDeleteClassMutation,
+} from "../../../../store/api/presenterApis";
 
 export default function ClassDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const classData = CLASSES_DATA[params.id];
+  const { data: classData, isLoading } = useGetClassDetailQuery(params.id);
+  const [deleteClass] = useDeleteClassMutation();
 
   const [activeMenu, setActiveMenu] = useState("my-classes");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("sessions");
   const [deleteModal, setDeleteModal] = useState(false);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    await deleteClass(params.id);
     setDeleteModal(false);
     router.push("/presenter/my-classes");
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500" dir="rtl">
+        در حال بارگذاری...
+      </div>
+    );
+  }
 
   if (!classData) {
     return (
@@ -124,8 +62,6 @@ export default function ClassDetailPage() {
         <PresenterHeader onMenuClick={() => setSidebarOpen(true)} />
 
         <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-
-          {/* Top Card */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="h-40 sm:h-52 bg-gray-100">
               <img
@@ -171,7 +107,6 @@ export default function ClassDetailPage() {
                 </div>
               </div>
 
-              {/* Stats */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
                 {[
                   { icon: <FiUsers size={18} />, label: "دانشجو", value: classData.students },
@@ -191,7 +126,6 @@ export default function ClassDetailPage() {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="flex border-b border-gray-100">
               {[
@@ -299,7 +233,6 @@ export default function ClassDetailPage() {
         </div>
       </main>
 
-      {/* Confirm Delete Modal */}
       <ConfirmModal
         open={deleteModal}
         title="حذف کلاس"
