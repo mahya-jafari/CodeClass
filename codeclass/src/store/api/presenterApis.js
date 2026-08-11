@@ -1,6 +1,6 @@
 import { baseApi } from "./baseApi";
 
-export const authApi = baseApi.injectEndpoints({
+export const presenterApis = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // ===== Calendar =====
     getPresenterCalendar: builder.query({
@@ -158,6 +158,24 @@ export const authApi = baseApi.injectEndpoints({
       query: () => "/presenter/dashboard/webinars",
       providesTags: ["Webinars"],
     }),
+
+     // ===== classroom =====
+    getClassroomParticipants: builder.query({
+      query: (classId) => `/presenter/classroom/${classId}/participants`,
+      providesTags: ["Classes"],
+    }),
+    getClassroomMessages: builder.query({
+      query: (classId) => `/presenter/classroom/${classId}/messages`,
+      providesTags: ["Messages"],
+    }),
+    sendClassroomMessage: builder.mutation({
+      query: ({ classId, ...body }) => ({
+        url: `/presenter/classroom/${classId}/messages`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Messages"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -188,4 +206,7 @@ export const {
   useGetDashboardStatsQuery,
   useGetDashboardClassesQuery,
   useGetDashboardWebinarsQuery,
-} = authApi;
+  useGetClassroomParticipantsQuery,
+  useGetClassroomMessagesQuery,
+  useSendClassroomMessageMutation,
+} = presenterApis;

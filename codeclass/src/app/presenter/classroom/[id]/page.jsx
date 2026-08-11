@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { FiUpload } from "react-icons/fi";
 
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -18,26 +18,36 @@ import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
 import { useTextBoxes } from "@/hooks/classroom/UseTextBoxes";
+import {
+  useGetClassroomParticipantsQuery,
+  useGetClassroomMessagesQuery,
+} from "@/store/api/presenterApis";
 
 export default function PresenterClassroom() {
   const router = useRouter();
+  const params = useParams();
+  const classId = params?.id || "1";
+
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const [participants, setParticipants] = useState([
-    { id: 1, name: "استاد کیشانی", mic: true, canEdit: true, isSelf: true },
-    { id: 2, name: "محیا جعفری", mic: false, canEdit: false },
-    { id: 3, name: "فاطمه قاسمی", mic: false, canEdit: false },
-    { id: 4, name: "مریم حسینی", mic: false, canEdit: false },
-  ]);
+
+  // داده‌ها از API
+  const { data: apiParticipants = [] } = useGetClassroomParticipantsQuery(classId);
+  const { data: apiMessages = [] } = useGetClassroomMessagesQuery(classId);
+
+  const [participants, setParticipants] = useState([]);
+
+  useEffect(() => {
+    if (apiParticipants.length > 0) {
+      setParticipants(apiParticipants);
+    }
+  }, [apiParticipants]);
 
   const wb = useWhiteboard(mode);
   const media = useMedia();
-  const chat = useChat([
-    { id: 1, name: "محیا جعفری", time: "10:30", text: "من متوجه نشدم", teacher: false },
-    { id: 2, name: "استاد کیشانی", time: "10:32", text: "دوباره توضیح میدم", teacher: true },
-  ]);
+  const chat = useChat(apiMessages); // پیام‌های اولیه از API
   const ide = useIDE();
   const tb = useTextBoxes();
 
@@ -102,7 +112,6 @@ export default function PresenterClassroom() {
           <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
             <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
 
-              {/* موبایل: ویدیو + اعضا + چت */}
               {mode === "media" && (
                 <div className="md:hidden flex-1 flex flex-col min-h-0">
                   <Sidebar
@@ -144,7 +153,6 @@ export default function PresenterClassroom() {
 
               {mode === "ide" && <IDEPanel ide={ide} />}
 
-              {/* لایه باکس متن — روی وایت‌برد و PDF */}
               {(mode === "whiteboard" || mode === "pdf") && (
                 <TextBoxLayer
                   boxes={tb.boxes}

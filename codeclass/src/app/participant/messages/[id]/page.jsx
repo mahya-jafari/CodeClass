@@ -2,26 +2,19 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import {
-  FiArrowRight, FiSend, FiPaperclip, FiSmile, FiX, FiFile
-} from "react-icons/fi";
+import { FiArrowRight, FiSend, FiPaperclip, FiSmile, FiX, FiFile } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import {
+  useGetParticipantChatQuery,
+  useSendParticipantMessageMutation,
+} from "../../../../store/api/participantApis";
 
 const USERS = {
   1: { name: "استاد علی محمدی", role: "مدرس" },
   2: { name: "پشتیبانی CodeClass", role: "پشتیبانی" },
   3: { name: "استاد سارا رضایی", role: "مدرس" },
-};
-
-const CHATS = {
-  1: [
-    { id: 1, text: "سلام، تکلیف جلسه قبل رو بررسی کردم. عالی بود!", fromMe: false, time: "10:15" },
-    { id: 2, text: "ممنون استاد 🙏", fromMe: true, time: "10:18" },
-  ],
-  2: [{ id: 1, text: "گواهینامه دوره Figma شما آماده دانلود است.", fromMe: false, time: "08:30" }],
-  3: [{ id: 1, text: "جلسه بعدی رو فراموش نکنید.", fromMe: false, time: "دیروز" }],
 };
 
 const EMOJIS = ["😀", "😂", "❤️", "👍", "🔥", "😊", "🎉", "👏", "🙏", "✨"];
@@ -31,8 +24,11 @@ export default function ParticipantChat() {
   const { id } = useParams();
   const user = USERS[id] || { name: "کاربر", role: "" };
 
+  const { data: initialMessages = [] } = useGetParticipantChatQuery(id);
+  const [sendMessage] = useSendParticipantMessageMutation();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState(CHATS[id] || []);
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [file, setFile] = useState(null);
@@ -41,11 +37,22 @@ export default function ParticipantChat() {
   const fileRef = useRef(null);
 
   useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const send = () => {
+  const send = async () => {
     if (!text.trim() && !file) return;
+
+    const fileData = file
+      ? { name: file.name, url: URL.createObjectURL(file) }
+      : null;
+
+    await sendMessage({ id, text: text.trim(), file: fileData });
+
     const now = new Date();
     setMessages((p) => [
       ...p,
@@ -54,7 +61,7 @@ export default function ParticipantChat() {
         text: text.trim(),
         fromMe: true,
         time: `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`,
-        file: file ? { name: file.name, url: URL.createObjectURL(file) } : null,
+        file: fileData,
       },
     ]);
     setText("");
@@ -75,7 +82,6 @@ export default function ParticipantChat() {
       <main className="flex-1 lg:mr-64 transition-all duration-300 flex flex-col h-screen">
         <ParticipantHeader onMenuClick={() => setSidebarOpen(true)} />
 
-        {/* chat header */}
         <header className="h-14 sm:h-16 bg-white border-b flex items-center gap-3 px-4 flex-shrink-0">
           <button
             onClick={() => router.push("/participant/messages")}
@@ -92,13 +98,9 @@ export default function ParticipantChat() {
           </div>
         </header>
 
-        {/* messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`flex ${m.fromMe ? "justify-start" : "justify-end"}`}
-            >
+            <div key={m.id} className={`flex ${m.fromMe ? "justify-start" : "justify-end"}`}>
               <div
                 className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                   m.fromMe
@@ -129,7 +131,6 @@ export default function ParticipantChat() {
           <div ref={bottomRef} />
         </div>
 
-        {/* file preview */}
         {file && (
           <div className="px-4 py-2 bg-white border-t flex items-center gap-3">
             <FiFile className="text-blue-600" />
@@ -140,7 +141,6 @@ export default function ParticipantChat() {
           </div>
         )}
 
-        {/* emoji picker */}
         {showEmoji && (
           <div className="px-4 py-3 bg-white border-t flex flex-wrap gap-2">
             {EMOJIS.map((e) => (
@@ -155,7 +155,6 @@ export default function ParticipantChat() {
           </div>
         )}
 
-        {/* input */}
         <div className="bg-white border-t p-3 flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setShowEmoji(!showEmoji)}

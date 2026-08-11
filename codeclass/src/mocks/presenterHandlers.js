@@ -321,4 +321,35 @@ export const handlers = [
       { id: 2, title: "وبینار رایگان JavaScript پیشرفته", status: "live", time: "الان" },
     ]);
   }),
+
+  /* ===================== CLASSROOM ===================== */
+  http.get(`${API}/presenter/classroom/:id/participants`, () => {
+    return HttpResponse.json([
+      { id: 1, name: "استاد کیشانی", mic: true, canEdit: true, isSelf: true },
+      { id: 2, name: "محیا جعفری", mic: false, canEdit: false },
+      { id: 3, name: "فاطمه قاسمی", mic: false, canEdit: false },
+      { id: 4, name: "مریم حسینی", mic: false, canEdit: false },
+    ]);
+  }),
+
+  http.get(`${API}/presenter/classroom/:id/messages`, () => {
+    return HttpResponse.json([
+      { id: 1, name: "محیا جعفری", time: "10:30", text: "من متوجه نشدم", teacher: false },
+      { id: 2, name: "استاد کیشانی", time: "10:32", text: "دوباره توضیح میدم", teacher: true },
+    ]);
+  }),
+
+  http.post(`${API}/presenter/classroom/:id/messages`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json(
+      {
+        id: Date.now(),
+        name: "استاد کیشانی",
+        time: new Date().toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" }),
+        text: body.text,
+        teacher: true,
+      },
+      { status: 201 }
+    );
+  }),
 ];

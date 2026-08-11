@@ -3,44 +3,33 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FiHome, FiBookOpen, FiCalendar, FiFileText, FiAward,
-  FiMessageSquare, FiSettings, FiClock, FiVideo
+  FiBookOpen, FiCalendar, FiFileText, FiClock, FiVideo
 } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import { useGetParticipantDashboardQuery } from "../../../store/api/participantApis";
 
 export default function ParticipantDashboard() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const stats = [
-    { title: "کلاس‌های ثبت‌نام شده", value: "۴", icon: <FiBookOpen size={20} />, color: "text-blue-500", bg: "bg-blue-50" },
-    { title: "جلسات پیش رو", value: "۲", icon: <FiCalendar size={20} />, color: "text-purple-500", bg: "bg-purple-50" },
-    { title: "تکالیف تکمیل‌نشده", value: "۳", icon: <FiFileText size={20} />, color: "text-orange-500", bg: "bg-orange-50" },
-    { title: "ساعات یادگیری", value: "۲۸", icon: <FiClock size={20} />, color: "text-green-500", bg: "bg-green-50" },
+  const { data } = useGetParticipantDashboardQuery();
+
+  const statsData = data?.stats ?? [];
+  const myClasses = data?.myClasses ?? [];
+  const webinars = data?.webinars ?? [];
+  const upcoming = data?.upcoming ?? [];
+  const notifications = data?.notifications ?? [];
+
+  const icons = [
+    <FiBookOpen size={20} key="book" />,
+    <FiCalendar size={20} key="cal" />,
+    <FiFileText size={20} key="file" />,
+    <FiClock size={20} key="clock" />,
   ];
 
-  const myClasses = [
-    { id: 1, title: "آموزش React از صفر تا پیشرفته", teacher: "استاد علی محمدی", progress: 75, nextSession: "سه‌شنبه ۱۸:۰۰", image: "https://via.placeholder.com/60x60?text=React", color: "bg-blue-100" },
-    { id: 2, title: "جامع JavaScript", teacher: "استاد علی محمدی", progress: 40, nextSession: "یکشنبه ۱۷:۰۰", image: "https://via.placeholder.com/60x60?text=JS", color: "bg-yellow-100" },
-    { id: 3, title: "Python برای مبتدیان", teacher: "استاد علی محمدی", progress: 25, nextSession: "دوشنبه ۱۹:۰۰", image: "https://via.placeholder.com/60x60?text=Python", color: "bg-green-100" },
-  ];
-
-  const webinars = [
-    { id: 2, title: "وبینار رایگان JavaScript پیشرفته", status: "live", time: "الان" },
-    { id: 1, title: "آشنایی با React 19", status: "upcoming", time: "سه‌شنبه ۱۸:۰۰" },
-  ];
-
-  const upcoming = [
-    { id: 1, title: "جلسه - React", time: "سه‌شنبه ۱۸:۰۰", tag: "React" },
-    { id: 2, title: "جلسه - JavaScript", time: "یکشنبه ۱۷:۰۰", tag: "JS" },
-  ];
-
-  const notifications = [
-    { id: 1, text: "تکلیف جدید در کلاس React", time: "۲ ساعت پیش", href: "/participant/assignments" },
-    { id: 2, text: "جلسه جدید در کلاس Python", time: "۵ ساعت پیش", href: "/participant/calendar" },
-  ];
+  const stats = statsData.map((s, i) => ({ ...s, icon: icons[i] }));
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
@@ -61,7 +50,6 @@ export default function ParticipantDashboard() {
             <p className="text-gray-500 mt-1 text-sm">به داشبورد خود خوش آمدید</p>
           </div>
 
-          {/* stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-8">
             {stats.map((s, i) => (
               <div key={i} className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -77,14 +65,10 @@ export default function ParticipantDashboard() {
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* my classes */}
             <div className="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h2 className="font-bold text-gray-800">کلاس‌های من</h2>
-                <button
-                  onClick={() => router.push("/participant/my-classes")}
-                  className="text-sm text-blue-600 hover:underline"
-                >
+                <button onClick={() => router.push("/participant/my-classes")} className="text-sm text-blue-600 hover:underline">
                   مشاهده همه
                 </button>
               </div>
@@ -111,23 +95,17 @@ export default function ParticipantDashboard() {
                         </div>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500 hidden sm:block whitespace-nowrap">
-                      {c.nextSession}
-                    </span>
+                    <span className="text-xs text-gray-500 hidden sm:block whitespace-nowrap">{c.nextSession}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* side column */}
             <div className="space-y-6">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                   <h2 className="font-bold text-gray-800 text-sm">جلسات پیش رو</h2>
-                  <button
-                    onClick={() => router.push("/participant/calendar")}
-                    className="text-xs text-blue-600 hover:underline"
-                  >
+                  <button onClick={() => router.push("/participant/calendar")} className="text-xs text-blue-600 hover:underline">
                     مشاهده همه
                   </button>
                 </div>
@@ -173,16 +151,12 @@ export default function ParticipantDashboard() {
             </div>
           </div>
 
-          {/* webinars */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden my-6">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="font-bold text-gray-800 flex items-center gap-2">
                 <FiVideo className="text-purple-500" /> وبینارها
               </h2>
-              <button
-                onClick={() => router.push("/participant/webinars")}
-                className="text-sm text-blue-600 hover:underline"
-              >
+              <button onClick={() => router.push("/participant/webinars")} className="text-sm text-blue-600 hover:underline">
                 مشاهده همه
               </button>
             </div>

@@ -1,27 +1,20 @@
 'use client';
 
 import { useState } from "react";
-import {
-  FiHome, FiBookOpen, FiCalendar, FiFileText, FiAward,
-  FiMessageSquare, FiSettings, FiMenu, FiDownload
-} from "react-icons/fi";
+import { FiAward, FiDownload } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import { useGetParticipantCertificatesQuery } from "../../../store/api/participantApis";
 
 export default function ParticipantCertificates() {
-  const [activeMenu, setActiveMenu] = useState("certificates");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const certificates = [
-    { id: 1, title: "گواهینامه دوره UI/UX با Figma", date: "۱۴۰۵/۰۲/۱۵", instructor: "استاد سارا رضایی", image: "https://via.placeholder.com/300x200?text=Certificate" },
-    { id: 2, title: "گواهینامه مقدماتی HTML & CSS", date: "۱۴۰۴/۱۱/۲۰", instructor: "استاد علی محمدی", image: "https://via.placeholder.com/300x200?text=Certificate" },
-  ];
+  const { data: certificates = [] } = useGetParticipantCertificatesQuery();
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
       <ParticipantSidebar
-        activeMenu="dashboard"
+        activeMenu="certificates"
         setActiveMenu={() => {}}
         menuItems={participantMenuItems}
         isOpen={sidebarOpen}
@@ -29,7 +22,7 @@ export default function ParticipantCertificates() {
       />
 
       <main className="flex-1 lg:mr-64 transition-all duration-300">
-        <ParticipantHeader></ParticipantHeader>
+        <ParticipantHeader onMenuClick={() => setSidebarOpen(true)} />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">گواهینامه‌ها</h1>

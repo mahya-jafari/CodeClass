@@ -8,28 +8,26 @@ import {
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import {
+  useGetParticipantFinanceQuery,
+  useChargeWalletMutation,
+  useRetryPaymentMutation,
+} from "../../../store/api/participantApis";
 
 export default function ParticipantFinancePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [wallet, setWallet] = useState(350000);
   const [chargeOpen, setChargeOpen] = useState(false);
   const [chargeAmount, setChargeAmount] = useState("");
   const [retryModal, setRetryModal] = useState(null);
   const [invoice, setInvoice] = useState(null);
 
-  const [payments, setPayments] = useState([
-    { id: 1, title: "کلاس React از صفر تا پیشرفته", amount: 2500000, date: "۱۴۰۵/۰۱/۱۵", status: "موفق", method: "درگاه بانکی" },
-    { id: 2, title: "وبینار JavaScript پیشرفته", amount: 0, date: "۱۴۰۵/۰۲/۰۸", status: "موفق", method: "رایگان" },
-    { id: 3, title: "کلاس جامع JavaScript", amount: 1800000, date: "۱۴۰۴/۱۲/۲۰", status: "موفق", method: "کیف پول" },
-    { id: 4, title: "کلاس Python برای مبتدیان", amount: 1500000, date: "۱۴۰۴/۱۱/۱۰", status: "موفق", method: "درگاه بانکی" },
-    { id: 5, title: "دوره Figma", amount: 1000000, date: "۱۴۰۴/۱۰/۰۵", status: "ناموفق", method: "درگاه بانکی" },
-  ]);
+  const { data } = useGetParticipantFinanceQuery();
+  const [chargeWalletMutation] = useChargeWalletMutation();
+  const [retryPaymentMutation] = useRetryPaymentMutation();
 
-  const summary = [
-    { title: "موجودی کیف پول", value: wallet.toLocaleString("fa-IR"), unit: "تومان", icon: <FiCreditCard size={22} />, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "کل پرداخت‌ها", value: "۶,۸۰۰,۰۰۰", unit: "تومان", icon: <FiDollarSign size={22} />, color: "text-purple-600", bg: "bg-purple-50" },
-    { title: "فاکتورهای موفق", value: "۴", unit: "مورد", icon: <FiCheckCircle size={22} />, color: "text-green-600", bg: "bg-green-50" },
-  ];
+  const wallet = data?.wallet ?? 0;
+  const payments = data?.payments ?? [];
+  const summary = data?.summary ?? [];
 
   const methodStyle = {
     "درگاه بانکی": "bg-blue-50 text-blue-600",
@@ -37,24 +35,18 @@ export default function ParticipantFinancePage() {
     "رایگان": "bg-green-50 text-green-600",
   };
 
-  const chargeWallet = () => {
+  const chargeWallet = async () => {
     const amount = Number(chargeAmount);
     if (!amount || amount < 1000) return;
-    setWallet((w) => w + amount);
+    await chargeWalletMutation({ amount });
     setChargeAmount("");
     setChargeOpen(false);
   };
 
-  const retryPayment = () => {
+  const retryPayment = async () => {
     if (!retryModal) return;
-    setPayments((prev) =>
-      prev.map((p) => (p.id === retryModal.id ? { ...p, status: "موفق" } : p))
-    );
+    await retryPaymentMutation(retryModal.id);
     setRetryModal(null);
-  };
-
-  const downloadInvoice = (p) => {
-    setInvoice(p);
   };
 
   return (
@@ -67,19 +59,16 @@ export default function ParticipantFinancePage() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">مالی</h1>
-                <p className="text-gray-500 mt-1 text-sm">کیف پول، پرداخت‌ها و فاکتورها</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">مالی</h1>
+              <p className="text-gray-500 mt-1 text-sm">کیف پول، پرداخت‌ها و فاکتورها</p>
             </div>
-
-            <div className="flex justify-end">
-                <button
-                onClick={() => setChargeOpen(true)}
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition"
-                >
-                <FiPlus size={16} /> شارژ کیف پول
-                </button>
-            </div>
-            </div>
+            <button
+              onClick={() => setChargeOpen(true)}
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              <FiPlus size={16} /> شارژ کیف پول
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5 mb-6">
             {summary.map((s, i) => (
@@ -88,7 +77,9 @@ export default function ParticipantFinancePage() {
                   <p className="text-xs text-gray-500 mb-1">{s.title}</p>
                   <p className="text-xl font-bold text-gray-800">{s.value} <span className="text-xs font-normal text-gray-400">{s.unit}</span></p>
                 </div>
-                <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center ${s.color}`}>{s.icon}</div>
+                <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center ${s.color}`}>
+                  {i === 0 ? <FiCreditCard size={22} /> : i === 1 ? <FiDollarSign size={22} /> : <FiCheckCircle size={22} />}
+                </div>
               </div>
             ))}
           </div>
@@ -121,7 +112,7 @@ export default function ParticipantFinancePage() {
                       <p className={`text-[11px] ${p.status === "موفق" ? "text-green-600" : "text-red-500"}`}>{p.status}</p>
                     </div>
                     {p.status === "موفق" && p.amount > 0 && (
-                      <button onClick={() => downloadInvoice(p)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl" title="فاکتور">
+                      <button onClick={() => setInvoice(p)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl" title="فاکتور">
                         <FiDownload size={16} />
                       </button>
                     )}
@@ -139,7 +130,6 @@ export default function ParticipantFinancePage() {
         </div>
       </main>
 
-      {/* charge wallet */}
       {chargeOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setChargeOpen(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()} dir="rtl">
@@ -165,7 +155,6 @@ export default function ParticipantFinancePage() {
         </div>
       )}
 
-      {/* retry failed payment */}
       {retryModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setRetryModal(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()} dir="rtl">
@@ -188,7 +177,6 @@ export default function ParticipantFinancePage() {
         </div>
       )}
 
-      {/* invoice modal */}
       {invoice && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setInvoice(null)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()} dir="rtl">

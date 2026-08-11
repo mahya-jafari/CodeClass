@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
 import Toolbar from "@/components/classroom/participant/Toolbar";
@@ -16,25 +16,35 @@ import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
 import { useTextBoxes } from "@/hooks/classroom/UseTextBoxes";
-
-const PARTICIPANTS = [
-  { id: 1, name: "استاد کیشانی", mic: true },
-  { id: 2, name: "شما", mic: false },
-  { id: 3, name: "محیا جعفری", mic: false },
-];
+import {
+  useGetParticipantClassroomParticipantsQuery,
+  useGetParticipantClassroomMessagesQuery,
+} from "../../../../store/api/participantApis";
 
 export default function ParticipantClassroom() {
   const router = useRouter();
+  const params = useParams();
+  const classId = params?.id || "1";
+
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
   const [canEdit, setCanEdit] = useState(false);
 
+  const { data: apiParticipants = [] } = useGetParticipantClassroomParticipantsQuery(classId);
+  const { data: apiMessages = [] } = useGetParticipantClassroomMessagesQuery(classId);
+
+  const [participants, setParticipants] = useState([]);
+
+  useEffect(() => {
+    if (apiParticipants.length > 0) {
+      setParticipants(apiParticipants);
+    }
+  }, [apiParticipants]);
+
   const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode, canEdit);
   const ide = useIDE(canEdit);
   const media = useMedia();
-  const chat = useChat([
-    { id: 1, name: "استاد کیشانی", time: "10:32", text: "کسی سوالی داره؟", teacher: true },
-  ]);
+  const chat = useChat(apiMessages);
   const tb = useTextBoxes();
 
   return (
@@ -52,7 +62,7 @@ export default function ParticipantClassroom() {
           <Sidebar
             chatOpen={chatOpen}
             media={media}
-            participants={PARTICIPANTS}
+            participants={participants}
             chat={chat}
             compact={false}
           />
@@ -61,13 +71,12 @@ export default function ParticipantClassroom() {
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
           <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
             <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
-
               {mode === "media" && (
                 <div className="md:hidden flex-1 flex flex-col min-h-0">
                   <Sidebar
                     chatOpen={true}
                     media={media}
-                    participants={PARTICIPANTS}
+                    participants={participants}
                     chat={chat}
                     compact={true}
                     fullHeight
@@ -75,13 +84,8 @@ export default function ParticipantClassroom() {
                 </div>
               )}
 
-              {mode === "whiteboard" && (
-                <Whiteboard wb={wb} canEdit={canEdit} />
-              )}
-
-              {mode === "ide" && (
-                <IDEPanel ide={ide} canEdit={canEdit} />
-              )}
+              {mode === "whiteboard" && <Whiteboard wb={wb} canEdit={canEdit} />}
+              {mode === "ide" && <IDEPanel ide={ide} canEdit={canEdit} />}
 
               {mode === "whiteboard" && canEdit && (
                 <TextBoxLayer

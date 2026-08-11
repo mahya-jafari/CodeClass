@@ -2,41 +2,40 @@
 
 import { useState, useRef } from "react";
 import {
-  FiHome, FiBookOpen, FiCalendar, FiFileText, FiAward,
-  FiMessageSquare, FiSettings, FiClock, FiCheckCircle, FiAlertCircle, FiUpload, FiX
+  FiClock, FiCheckCircle, FiAlertCircle, FiUpload, FiDownload
 } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import {
+  useGetParticipantAssignmentsQuery,
+  useSubmitAssignmentMutation,
+} from "../../../store/api/participantApis";
 
 export default function ParticipantAssignments() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [assignments, setAssignments] = useState([
-    { id: 1, title: "پروژه نهایی React", course: "آموزش React از صفر تا پیشرفته", deadline: "۳ روز دیگر", status: "pending" },
-    { id: 2, title: "تمرین Async/Await", course: "جامع JavaScript", deadline: "۵ روز دیگر", status: "pending" },
-    { id: 3, title: "ساخت API با FastAPI", course: "Python برای مبتدیان", deadline: "۱ هفته دیگر", status: "pending" },
-    { id: 4, title: "کامپوننت‌های قابل استفاده مجدد", course: "آموزش React از صفر تا پیشرفته", deadline: "تحویل شده", status: "done" },
-  ]);
   const [uploadId, setUploadId] = useState(null);
   const fileRef = useRef(null);
 
-  const handleUpload = (e) => {
+  const { data: assignments = [] } = useGetParticipantAssignmentsQuery();
+  const [submitAssignment] = useSubmitAssignmentMutation();
+
+  const handleUpload = async (e) => {
     const f = e.target.files?.[0];
     if (!f || !uploadId) return;
-    setAssignments((prev) =>
-      prev.map((a) => a.id === uploadId ? { ...a, status: "done", deadline: "تحویل شده", fileName: f.name } : a)
-    );
+    await submitAssignment({ id: uploadId, fileName: f.name });
     setUploadId(null);
+    e.target.value = "";
   };
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
-      <ParticipantSidebar  
-        activeMenu="assignments" 
-        setActiveMenu={() => {}} 
-        menuItems={participantMenuItems} 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
+      <ParticipantSidebar
+        activeMenu="assignments"
+        setActiveMenu={() => {}}
+        menuItems={participantMenuItems}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <main className="flex-1 lg:mr-64 transition-all duration-300">
@@ -67,10 +66,20 @@ export default function ParticipantAssignments() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 self-end sm:self-auto">
+                <div className="flex items-center gap-2 self-end sm:self-auto">
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${item.status === "done" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
                     {item.status === "done" ? "تحویل شده" : "در انتظار"}
                   </span>
+
+                  {/* دکمه دانلود فایل تکلیف */}
+                  <a
+                    href={item.fileUrl || "#"}
+                    download
+                    className="flex items-center gap-1.5 text-sm bg-gray-50 hover:bg-gray-100 text-gray-700 px-3.5 py-2 rounded-xl transition"
+                  >
+                    <FiDownload size={14} /> دانلود فایل
+                  </a>
+
                   {item.status !== "done" && (
                     <button
                       onClick={() => { setUploadId(item.id); fileRef.current?.click(); }}

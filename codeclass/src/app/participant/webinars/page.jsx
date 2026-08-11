@@ -3,13 +3,15 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FiHome, FiBookOpen, FiCalendar, FiFileText, FiAward,
-  FiMessageSquare, FiSettings, FiVideo, FiSearch, FiUsers,
-  FiClock, FiCalendar as FiCal, FiX, FiFilter, FiCheck
+  FiVideo, FiSearch, FiUsers, FiClock, FiCalendar as FiCal, FiX, FiFilter, FiCheck
 } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import {
+  useGetParticipantWebinarsQuery,
+  useToggleJoinWebinarMutation,
+} from "../../../store/api/participantApis";
 
 export default function ParticipantWebinarsPage() {
   const router = useRouter();
@@ -18,47 +20,8 @@ export default function ParticipantWebinarsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const [webinars, setWebinars] = useState([
-    {
-      id: 1,
-      title: "آشنایی با React 19 و قابلیت‌های جدید",
-      details: "بررسی ویژگی‌های جدید React 19 و نحوه استفاده در پروژه‌های واقعی",
-      date: "۱۴۰۵/۰۲/۱۵",
-      time: "۱۸:۰۰",
-      capacity: 200,
-      registered: 87,
-      status: "upcoming",
-      duration: "۹۰ دقیقه",
-      joined: false,
-      teacher: "استاد علی محمدی",
-    },
-    {
-      id: 2,
-      title: "وبینار رایگان JavaScript پیشرفته",
-      details: "مباحث پیشرفته جاوااسکریپت برای توسعه‌دهندگان",
-      date: "۱۴۰۵/۰۲/۱۰",
-      time: "۱۷:۰۰",
-      capacity: 150,
-      registered: 142,
-      status: "live",
-      duration: "۶۰ دقیقه",
-      joined: true,
-      teacher: "استاد سارا رضایی",
-    },
-    {
-      id: 3,
-      title: "مسیر شغلی برنامه‌نویسی فرانت‌اند",
-      details: "راهنمای ورود به بازار کار فرانت‌اند",
-      date: "۱۴۰۵/۰۱/۲۰",
-      time: "۱۹:۰۰",
-      capacity: 300,
-      registered: 256,
-      status: "ended",
-      duration: "۷۵ دقیقه",
-      joined: true,
-      teacher: "استاد علی محمدی",
-    },
-  ]);
+  const { data: webinars = [] } = useGetParticipantWebinarsQuery();
+  const [toggleJoin] = useToggleJoinWebinarMutation();
 
   const normalize = (t) =>
     t.toLowerCase().replace(/آ/g, "ا").replace(/أ|إ|ؤ|ئ/g, "ا").trim();
@@ -78,17 +41,8 @@ export default function ParticipantWebinarsPage() {
     ended: { label: "پایان‌یافته", cls: "bg-gray-100 text-gray-600" },
   };
 
-  const toggleJoin = (id) => {
-    setWebinars((prev) =>
-      prev.map((w) => {
-        if (w.id !== id || w.status === "ended" || w.status === "live") return w;
-        return {
-          ...w,
-          joined: !w.joined,
-          registered: w.joined ? w.registered - 1 : w.registered + 1,
-        };
-      })
-    );
+  const handleToggleJoin = async (id) => {
+    await toggleJoin(id);
   };
 
   return (
@@ -110,7 +64,6 @@ export default function ParticipantWebinarsPage() {
             <p className="text-gray-500 mt-1 text-sm">ثبت‌نام و شرکت در وبینارهای آنلاین</p>
           </div>
 
-          {/* search + filter */}
           <div className="flex flex-col sm:flex-row gap-3 mb-5">
             <div className="relative flex-1">
               <FiSearch className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -203,7 +156,7 @@ export default function ParticipantWebinarsPage() {
                     )}
                     {w.status === "upcoming" && (
                       <button
-                        onClick={() => toggleJoin(w.id)}
+                        onClick={() => handleToggleJoin(w.id)}
                         className={`flex items-center gap-1.5 text-xs sm:text-sm px-3.5 py-2 rounded-xl transition ${
                           w.joined
                             ? "bg-green-50 text-green-700 border border-green-200"

@@ -1,36 +1,28 @@
 'use client';
 
 import { useState } from "react";
-import {
-  FiHome, FiBookOpen, FiCalendar, FiFileText, FiAward,
-  FiMessageSquare, FiSettings, FiMenu
-} from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import { useGetParticipantCalendarQuery } from "../../../store/api/participantApis";
 
 export default function ParticipantCalendar() {
-  const [activeMenu, setActiveMenu] = useState("calendar");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: sessions = [] } = useGetParticipantCalendarQuery();
 
   const days = ["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"];
-  const sessions = [
-    { day: 2, time: "۱۷:۰۰", title: "JavaScript - جلسه ۹", color: "bg-yellow-100 text-yellow-700" },
-    { day: 3, time: "۱۸:۰۰", title: "React - جلسه ۱۲", color: "bg-blue-100 text-blue-700" },
-    { day: 4, time: "۱۹:۰۰", title: "Python - جلسه ۷", color: "bg-green-100 text-green-700" },
-  ];
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
       <ParticipantSidebar
-        activeMenu="dashboard"
+        activeMenu="calendar"
         setActiveMenu={() => {}}
         menuItems={participantMenuItems}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
       <main className="flex-1 lg:mr-64 transition-all duration-300">
-        <ParticipantHeader></ParticipantHeader>
+        <ParticipantHeader onMenuClick={() => setSidebarOpen(true)} />
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">تقویم جلسات</h1>

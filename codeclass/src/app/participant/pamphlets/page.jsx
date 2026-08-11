@@ -2,13 +2,12 @@
 
 import { useState, useMemo } from "react";
 import {
-  FiHome, FiBookOpen, FiCalendar, FiFileText, FiAward,
-  FiMessageSquare, FiSettings, FiVideo, FiSearch, FiFile,
-  FiDownload, FiEye, FiX, FiFilter
+  FiSearch, FiFile, FiDownload, FiEye, FiX, FiFilter, FiFileText
 } from "react-icons/fi";
 import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
+import { useGetParticipantPamphletsQuery } from "../../../store/api/participantApis";
 
 export default function ParticipantPamphletsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,40 +15,12 @@ export default function ParticipantPamphletsPage() {
   const [classFilter, setClassFilter] = useState("all");
   const [filterOpen, setFilterOpen] = useState(false);
 
+  const { data: pamphlets = [] } = useGetParticipantPamphletsQuery();
+
   const classOptions = [
     "آموزش React از صفر تا پیشرفته",
     "جامع JavaScript",
     "Python برای مبتدیان",
-  ];
-
-  const pamphlets = [
-    {
-      id: 1,
-      title: "جزوه جلسه ۱ - مقدمه React",
-      className: "آموزش React از صفر تا پیشرفته",
-      type: "pdf",
-      size: "2.4 MB",
-      date: "۱۴۰۵/۰۱/۱۲",
-      url: "#",
-    },
-    {
-      id: 2,
-      title: "اسلایدهای Hooks",
-      className: "آموزش React از صفر تا پیشرفته",
-      type: "pdf",
-      size: "5.1 MB",
-      date: "۱۴۰۵/۰۱/۱۵",
-      url: "#",
-    },
-    {
-      id: 3,
-      title: "تمرین Async/Await",
-      className: "جامع JavaScript",
-      type: "docx",
-      size: "1.2 MB",
-      date: "۱۴۰۵/۰۱/۱۰",
-      url: "#",
-    },
   ];
 
   const normalize = (t) =>
@@ -63,7 +34,7 @@ export default function ParticipantPamphletsPage() {
       const matchClass = classFilter === "all" || m.className === classFilter;
       return matchSearch && matchClass;
     });
-  }, [search, classFilter]);
+  }, [search, classFilter, pamphlets]);
 
   const typeStyle = (type) => {
     if (type === "pdf") return "from-red-500 to-rose-400";
@@ -91,7 +62,6 @@ export default function ParticipantPamphletsPage() {
             <p className="text-gray-500 mt-1 text-sm">مشاهده و دانلود فایل‌های آموزشی کلاس‌ها</p>
           </div>
 
-          {/* stats */}
           <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
             {[
               { label: "کل جزوات", value: pamphlets.length, color: "text-blue-600" },
@@ -105,7 +75,6 @@ export default function ParticipantPamphletsPage() {
             ))}
           </div>
 
-          {/* search + filter */}
           <div className="flex flex-col sm:flex-row gap-3 mb-5">
             <div className="relative flex-1">
               <FiSearch className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -157,7 +126,6 @@ export default function ParticipantPamphletsPage() {
             </div>
           </div>
 
-          {/* list */}
           <div className="space-y-3">
             {filtered.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center text-gray-400">
