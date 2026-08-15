@@ -2,6 +2,7 @@ import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/components/providers/StoreProvider";
 import MSWProvider from "@/components/providers/MSWProvider";
+import ToastProvider from "./ToastProvider";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
@@ -20,7 +21,11 @@ export default function RootLayout({ children }) {
     <html lang="fa" dir="rtl">
       <body className={`${vazirmatn.className} antialiased`}>
         <StoreProvider>
-          <MSWProvider>{children}</MSWProvider>
+          <MSWProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </MSWProvider>
         </StoreProvider>
       </body>
     </html>
