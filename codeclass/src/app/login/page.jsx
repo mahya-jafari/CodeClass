@@ -7,6 +7,18 @@ import { useLoginMutation } from "../../store/api/authApis";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/authSlice";
 
+const ROLES = {
+  presenter: { label: "ارائه‌دهنده", placeholder: "presenter@test.com" },
+  participant: { label: "شرکت‌کننده", placeholder: "participant@test.com" },
+  admin: { label: "مدیر سیستم", placeholder: "admin@test.com" },
+};
+
+const ROLE_REDIRECTS = {
+  presenter: "/presenter/dashboard",
+  participant: "/participant/dashboard",
+  admin: "/admin/dashboard",
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -37,11 +49,7 @@ export default function LoginPage() {
 
       dispatch(setCredentials(data));
 
-      router.push(
-        data.user.role === "presenter"
-          ? "/presenter/dashboard"
-          : "/participant/dashboard"
-      );
+      router.push(ROLE_REDIRECTS[data.user.role] || "/participant/dashboard");
     } catch (err) {
       setFormError(err?.data?.message || "ورود ناموفق بود");
     }
@@ -65,16 +73,16 @@ export default function LoginPage() {
 
           {/* tabs */}
           <div className="flex border-b border-gray-200 mb-8">
-            {["presenter", "participant"].map((tab) => (
+            {Object.keys(ROLES).map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-3 text-center font-medium transition-colors relative ${
+                className={`flex-1 py-3 text-center font-medium transition-colors relative text-sm sm:text-base ${
                   activeTab === tab ? "text-blue-600" : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                {tab === "presenter" ? "ارائه‌دهنده" : "شرکت‌کننده"}
+                {ROLES[tab].label}
                 {activeTab === tab && (
                   <span className="absolute bottom-0 right-0 left-0 h-0.5 bg-blue-600" />
                 )}
@@ -91,8 +99,8 @@ export default function LoginPage() {
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="presenter@test.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
+                placeholder={ROLES[activeTab].placeholder}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-left text-black"
                 dir="ltr"
               />
             </div>
@@ -107,7 +115,7 @@ export default function LoginPage() {
                   value={password}                          
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition pl-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition pl-12 text-black"
                 />
                 <button
                   type="button"
@@ -138,9 +146,11 @@ export default function LoginPage() {
                 />
                 <span className="text-gray-600">مرا به‌خاطر بسپار</span>
               </label>
-              <a href="#" className="text-blue-600 hover:underline">
-                فراموشی رمز عبور؟
-              </a>
+              {activeTab !== "admin" && (
+                <a href="#" className="text-blue-600 hover:underline">
+                  فراموشی رمز عبور؟
+                </a>
+              )}
             </div>
 
             {(formError || error) && (
@@ -158,12 +168,14 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center mt-8 text-gray-600 text-sm">
-            حساب کاربری ندارید؟{" "}
-            <a href="/register" className="text-blue-600 font-medium hover:underline">
-              ثبت‌نام کنید
-            </a>
-          </p>
+          {activeTab !== "admin" && (
+            <p className="text-center mt-8 text-gray-600 text-sm">
+              حساب کاربری ندارید؟{" "}
+              <a href="/register" className="text-blue-600 font-medium hover:underline">
+                ثبت‌نام کنید
+              </a>
+            </p>
+          )}
         </div>
 
         <div className="hidden lg:block lg:w-1/2 relative min-h-full">

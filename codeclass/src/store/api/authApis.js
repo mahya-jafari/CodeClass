@@ -1,27 +1,27 @@
 import { baseApi } from "./baseApi";
 
 export const authApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({
-    // ===== Auth =====
-    login: builder.mutation({
-      query: (body) => ({
-        url: "/auth/login",
-        method: "POST",
-        body,
-      }),
+    endpoints: (builder) => ({
+        // ===== Auth =====
+        login: builder.mutation({
+            query: (body) => ({
+                url: "/auth/login",
+                method: "POST",
+                body,
+            }),
+        }),
+        register: builder.mutation({
+            query: (body) => ({
+                url: "/auth/register",
+                method: "POST",
+                body,
+            }),
+        }),
     }),
-    register: builder.mutation({
-      query: (body) => ({
-        url: "/auth/register",
-        method: "POST",
-        body,
-      }),
-    }),
-  overrideExisting: true,
-  })
+    overrideExisting: true,
 });
 
 export const {
-  useLoginMutation,
-  useRegisterMutation,
+    useLoginMutation,
+    useRegisterMutation,
 } = authApi;
