@@ -1,18 +1,47 @@
 'use client';
 
-import React from 'react';
-import { useState } from "react";
-import { FiUsers, FiBookOpen, FiDollarSign, FiVideo, FiMessageSquare, FiBarChart2 } from "react-icons/fi";
-import { useGetAdminMessagesQuery } from "../../../store/api/adminApis";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { FiSearch, FiX } from "react-icons/fi";
 import AdminSidebar from "@/components/layout/adminSidebar";
 import AdminHeader from "@/components/layout/adminHeader";
 import { adminMenuItems } from "@/components/layout/adminMenuItems";
+import { useGetAdminMessagesQuery } from "../../../store/api/adminApis";
+
+const TABS = [
+  { key: "all", label: "همه" },
+  { key: "unread", label: "خوانده‌نشده" },
+  { key: "pending", label: "در انتظار" },
+  { key: "resolved", label: "حل‌شده" },
+];
 
 export default function AdminMessagesPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("messages");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState("all");
 
   const { data: messages = [], isLoading } = useGetAdminMessagesQuery();
+
+  const normalize = (text) =>
+    (text || "").toLowerCase().replace(/آ/g, "ا").replace(/أ|إ|ؤ|ئ/g, "ا").trim();
+
+  const filtered = useMemo(() => {
+    const q = normalize(search);
+    return messages.filter((m) => {
+      const matchesSearch =
+        !q || normalize(m.name).includes(q) || normalize(m.message).includes(q);
+      const matchesTab =
+        tab === "all" ||
+        (tab === "unread" && m.unread) ||
+        (tab === "pending" && m.status === "pending") ||
+        (tab === "resolved" && m.status === "resolved");
+      return matchesSearch && matchesTab;
+    });
+  }, [search, tab, messages]);
+
+  const unreadCount = messages.filter((m) => m.unread).length;
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
@@ -30,24 +59,97 @@ export default function AdminMessagesPage() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">پیام‌ها و پشتیبانی</h1>
-            <p className="text-gray-500 mt-1 text-sm">پیام‌های کاربران و پشتیبانی</p>
+            <p className="text-gray-500 mt-1 text-sm">
+              مدیریت گفتگو با کاربران
+              {unreadCount > 0 && (
+                <span className="mr-1 text-blue-600 font-medium">
+                  ({unreadCount} پیام خوانده‌نشده)
+                </span>
+              )}
+            </p>
           </div>
 
-          {isLoading ? (
-            <p>در حال بارگذاری...</p>
-          ) : (
-            <div className="space-y-4">
-              {messages.map((m) => (
-                <div key={m.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                  <div className="flex justify-between">
-                    <p className="font-medium">{m.userName}</p>
-                    <span className="text-xs text-gray-500">{m.date}</span>
-                  </div>
-                  <p className="mt-2 text-gray-600">{m.message}</p>
-                </div>
-              ))}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-w-3xl">
+            <div className="p-4 border-b border-gray-100 space-y-3">
+              <div className="relative">
+                <FiSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="جستجو در پیام‌ها..."
+                  className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    <FiX size={16} />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-full transition ${
+                      tab === t.key
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
+
+            <div className="divide-y divide-gray-100">
+              {isLoading ? (
+                <div className="py-12 text-center text-gray-400 text-sm">در حال بارگذاری...</div>
+              ) : filtered.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 text-sm">پیامی پیدا نشد</div>
+              ) : (
+                filtered.map((msg) => (
+                  <div
+                    key={msg.id}
+                    onClick={() => router.push(`/admin/messages/${msg.id}`)}
+                    className={`flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 hover:bg-gray-50 cursor-pointer transition ${
+                      msg.unread ? "bg-blue-50/50" : ""
+                    }`}
+                  >
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium text-sm flex-shrink-0">
+                      {msg.name.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className={`font-medium text-sm ${msg.unread ? "text-gray-900" : "text-gray-700"}`}>
+                          {msg.name}
+                        </h3>
+                        <span className="text-xs text-gray-400 whitespace-nowrap">{msg.time}</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate mt-0.5">{msg.message}</p>
+                    </div>
+                    <span
+                      className={`text-[10px] font-medium px-2 py-1 rounded-full flex-shrink-0 ${
+                        msg.status === "resolved"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-orange-100 text-orange-700"
+                      }`}
+                    >
+                      {msg.status === "resolved" ? "حل‌شده" : "در انتظار"}
+                    </span>
+                    {msg.unread && (
+                      <div className="w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

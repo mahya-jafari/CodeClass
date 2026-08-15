@@ -1,11 +1,12 @@
 import {
-  FiHome, FiUsers, FiBookOpen, FiVideo, FiDollarSign,
+  FiHome, FiUser, FiBookOpen, FiVideo, FiDollarSign,
   FiAward, FiMessageSquare, FiSettings, FiFileText, FiBarChart2,
   FiCreditCard, FiTrendingUp, FiUsers as FiTeam, FiCalendar, FiFileText as FiAssignmentIcon
 } from "react-icons/fi";
 
 export const adminMenuItems = [
   { id: "dashboard", label: "داشبورد", icon: <FiHome size={20} /> },
+  { id: "profile", label: "پروفایل", icon: <FiUser size={20} /> },
   { id: "users", label: "مدیریت کاربران", icon: <FiTeam size={20} /> },
   { id: "classes", label: "مدیریت کلاس‌ها", icon: <FiBookOpen size={20} /> },
   { id: "webinars", label: "مدیریت وبینارها", icon: <FiVideo size={20} /> },

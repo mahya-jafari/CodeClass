@@ -12,6 +12,7 @@ export default function AdminSidebar({ activeMenu, setActiveMenu, menuItems, isO
     setActiveMenu(id);
     const routes = {
       dashboard: "/admin/dashboard",
+      profile: "/admin/profile",
       users: "/admin/users",
       classes: "/admin/classes",
       webinars: "/admin/webinars",

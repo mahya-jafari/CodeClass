@@ -6,6 +6,26 @@ export const adminApis = baseApi.injectEndpoints({
       query: () => "/admin/profile",
       providesTags: ["User"],
     }),
+    updateAdminProfile: builder.mutation({
+      query: (body) => ({
+        url: "/admin/profile",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    changeAdminPassword: builder.mutation({
+      query: (body) => ({
+        url: "/admin/profile/password",
+        method: "PUT",
+        body,
+      }),
+    }),
+ 
+    getAdminDashboard: builder.query({
+      query: () => "/admin/dashboard",
+      providesTags: ["User", "Classes", "Webinars", "Finance"],
+    }),
 
     getAdminDashboard: builder.query({
       query: () => "/admin/dashboard",
@@ -92,6 +112,40 @@ export const adminApis = baseApi.injectEndpoints({
       query: () => "/admin/messages",
       providesTags: ["Messages"],
     }),
+    getAdminMessageThread: builder.query({
+      query: (id) => `/admin/messages/${id}/thread`,
+      providesTags: (result, error, id) => [{ type: "Messages", id }],
+    }),
+    sendAdminMessageReply: builder.mutation({
+      query: ({ id, text }) => ({
+        url: `/admin/messages/${id}/thread`,
+        method: "POST",
+        body: { text },
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Messages", id }],
+    }),
+    updateMessageStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/admin/messages/${id}/status`,
+        method: "PATCH",
+        body: { status },
+      }),
+      invalidatesTags: ["Messages"],
+    }),
+    markMessageRead: builder.mutation({
+      query: (id) => ({
+        url: `/admin/messages/${id}/read`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Messages"],
+    }),
+    deleteAdminMessage: builder.mutation({
+      query: (id) => ({
+        url: `/admin/messages/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Messages"],
+    }),
 
     // Reports
     getAdminReports: builder.query({
@@ -117,6 +171,8 @@ export const adminApis = baseApi.injectEndpoints({
 
 export const {
   useGetAdminProfileQuery,
+  useUpdateAdminProfileMutation,
+  useChangeAdminPasswordMutation,
   useGetAdminDashboardQuery,
   useGetAdminUsersQuery,
   useGetAdminClassesQuery,
@@ -125,6 +181,11 @@ export const {
   useGetAdminCertificatesQuery,
   useGetAdminAssignmentsQuery,
   useGetAdminMessagesQuery,
+  useGetAdminMessageThreadQuery,
+  useSendAdminMessageReplyMutation,
+  useUpdateMessageStatusMutation,
+  useMarkMessageReadMutation,
+  useDeleteAdminMessageMutation,
   useGetAdminReportsQuery,
   useGetAdminSettingsQuery,
   useUpdateUserStatusMutation,
