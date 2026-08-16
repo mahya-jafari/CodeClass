@@ -140,7 +140,14 @@ export default function AdminUsersPage() {
                                   {u.name}
                                   {isAdmin && <FiShield size={13} className="text-indigo-500" />}
                                 </div>
-                                <div className="text-xs text-gray-500">{ROLE_LABELS[u.role] || u.role}</div>
+                                <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                                  {ROLE_LABELS[u.role] || u.role}
+                                  {u.role === "presenter" && u.approvalStatus === "pending" && (
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">
+                                      در انتظار تأیید
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>

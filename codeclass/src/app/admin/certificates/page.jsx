@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from "react";
-import { FiAward, FiDownload, FiSearch, FiX } from "react-icons/fi";
-import { useGetAdminCertificatesQuery } from "../../../store/api/adminApis";
+import { FiDownload, FiSearch, FiX, FiCheckCircle } from "react-icons/fi";
+import { useGetAdminCertificatesQuery, useIssueCertificateMutation } from "../../../store/api/adminApis";
+import { toast } from 'react-toastify';
 import AdminSidebar from "@/components/layout/adminSidebar";
 import AdminHeader from "@/components/layout/adminHeader";
 import { adminMenuItems } from "@/components/layout/adminMenuItems";
@@ -14,12 +15,22 @@ export default function AdminCertificatesPage() {
   const [filter, setFilter] = useState("all");
 
   const { data: certificates = [], isLoading } = useGetAdminCertificatesQuery();
+  const [issueCertificate, { isLoading: isIssuing }] = useIssueCertificateMutation();
 
   const filtered = certificates.filter((c) => {
     const q = search.toLowerCase();
     if (filter !== "all" && c.status !== filter) return false;
     return c.userName.toLowerCase().includes(q) || c.course.toLowerCase().includes(q);
   });
+
+  const handleIssue = async (id) => {
+    try {
+      await issueCertificate(id).unwrap();
+      toast.success('گواهینامه صادر شد');
+    } catch (err) {
+      toast.error('خطا در صدور گواهینامه');
+    }
+  };
 
   const exportCSV = () => {
     const header = "نام کاربر,دوره,امتیاز,وضعیت\n";
@@ -50,7 +61,7 @@ export default function AdminCertificatesPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-800">گواهینامه‌ها</h1>
-              <p className="text-gray-500 mt-1 text-sm">گواهینامه‌های دریافتی کاربران</p>
+              <p className="text-gray-500 mt-1 text-sm">صدور و مدیریت گواهینامه‌های کاربران</p>
             </div>
             <button onClick={exportCSV} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 px-4 py-2.5 rounded-xl text-sm">
               <FiDownload size={16} /> خروجی CSV
@@ -102,13 +113,24 @@ export default function AdminCertificatesPage() {
                         <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{cert.userName}</h3>
                         <p className="text-xs text-gray-500 mt-1">{cert.course}</p>
                       </div>
-                      <div className="bg-blue-50 text-center py-6 rounded-xl w-32">
-                        <p className="text-3xl font-bold text-blue-700">امتیاز</p>
-                        <p className="text-5xl font-bold text-blue-700 mt-2">{cert.score}</p>
+                      <div className="bg-blue-50 text-center py-2 px-4 rounded-xl">
+                        <p className="text-xs font-sm text-blue-600">امتیاز</p>
+                        <p className="text-xl font-bold text-blue-700 mt-1">{cert.score}</p>
                       </div>
-                      <span className={`px-4 py-1.5 text-xs font-medium rounded-full self-end sm:self-auto ${cert.status === "صادر شده" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                        {cert.status}
-                      </span>
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <span className={`px-4 py-1.5 text-xs font-medium rounded-full ${cert.status === "صادر شده" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
+                          {cert.status}
+                        </span>
+                        {cert.status === "در انتظار" && (
+                          <button
+                            onClick={() => handleIssue(cert.id)}
+                            disabled={isIssuing}
+                            className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white px-3 py-1.5 rounded-xl transition"
+                          >
+                            <FiCheckCircle size={13} /> صدور گواهینامه
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}

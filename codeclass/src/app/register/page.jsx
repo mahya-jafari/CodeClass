@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaLaptopCode } from "react-icons/fa";
+import { FiCheckCircle } from "react-icons/fi";
 import { useRegisterMutation } from "@/store/api/authApis";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/authSlice";
@@ -18,6 +19,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [formError, setFormError] = useState("");
+  const [pendingApprovalMsg, setPendingApprovalMsg] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -33,6 +35,7 @@ export default function RegisterPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     setFormError("");
+    setPendingApprovalMsg("");
 
     if (!form.name.trim() || !form.email.trim() || !form.password) {
       setFormError("فیلدهای ضروری را پر کنید");
@@ -51,6 +54,13 @@ export default function RegisterPage() {
         password: form.password,
         role: activeTab,
       }).unwrap();
+
+      // presenter accounts need admin approval before they can log in —
+      // there's no token yet, so don't try to authenticate them
+      if (data.pendingApproval) {
+        setPendingApprovalMsg(data.message || "ثبت‌نام شما ثبت شد و در انتظار تأیید مدیر است.");
+        return;
+      }
 
       dispatch(setCredentials(data));
       router.push(
@@ -83,6 +93,22 @@ export default function RegisterPage() {
             </div>
           </div> 
 
+          {pendingApprovalMsg ? (
+            <div className="flex flex-col items-center text-center py-8">
+              <div className="w-16 h-16 rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-4">
+                <FiCheckCircle size={32} />
+              </div>
+              <h2 className="font-bold text-gray-800 mb-2">ثبت‌نام با موفقیت انجام شد</h2>
+              <p className="text-sm text-gray-500 leading-6 max-w-sm">{pendingApprovalMsg}</p>
+              <Link
+                href="/login"
+                className="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl transition"
+              >
+                رفتن به صفحه ورود
+              </Link>
+            </div>
+          ) : (
+          <>
           {/* tabs */}
           <div className="flex border-b border-gray-200 mb-7">
             <button
@@ -114,6 +140,12 @@ export default function RegisterPage() {
               )}
             </button>
           </div>
+
+          {activeTab === 'presenter' && (
+            <p className="text-xs text-orange-600 bg-orange-50 rounded-xl px-3 py-2 mb-4 text-center">
+              حساب‌های ارائه‌دهنده پس از ثبت‌نام باید توسط مدیر سیستم تأیید شوند.
+            </p>
+          )}
 
           {/* form */}
           <form className="space-y-4" onSubmit={handleRegister}>
@@ -265,6 +297,8 @@ export default function RegisterPage() {
               ورود
             </Link>
           </p>
+          </>
+          )}
         </div>
 
         {/* image */}

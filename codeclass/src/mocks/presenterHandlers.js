@@ -95,6 +95,27 @@ export const handlers = [
       );
     }
 
+    // presenters must be approved by an admin before they can log in
+    if (user.role === "presenter" && user.approvalStatus === "pending") {
+      return HttpResponse.json(
+        { message: "حساب ارائه‌دهنده شما هنوز توسط مدیر تأیید نشده است" },
+        { status: 403 }
+      );
+    }
+    if (user.role === "presenter" && user.approvalStatus === "rejected") {
+      return HttpResponse.json(
+        { message: "درخواست ارائه‌دهنده شدن شما رد شده است. با پشتیبانی تماس بگیرید." },
+        { status: 403 }
+      );
+    }
+
+    if (user.status === "غیرفعال") {
+      return HttpResponse.json(
+        { message: "حساب کاربری شما غیرفعال شده است" },
+        { status: 403 }
+      );
+    }
+
     const { password: _, ...safeUser } = user;
     return HttpResponse.json({
       token: `fake-token-${user.id}`,
@@ -114,15 +135,34 @@ export const handlers = [
       );
     }
 
+    const finalRole = role === "participant" ? "participant" : "presenter";
+
     const newUser = {
       id: Date.now(),
       name,
       email,
       phone,
       password,
-      role: role === "participant" ? "participant" : "presenter",
+      role: finalRole,
+      status: "فعال",
+      // presenters start out pending until an admin approves them;
+      // participants don't need approval
+      approvalStatus: finalRole === "presenter" ? "pending" : "approved",
+      date: new Date().toLocaleDateString("fa-IR"),
     };
     users.push(newUser);
+
+    if (finalRole === "presenter") {
+      const { password: _, ...safeUser } = newUser;
+      return HttpResponse.json(
+        {
+          pendingApproval: true,
+          message: "ثبت‌نام شما با موفقیت انجام شد. حساب ارائه‌دهنده شما پس از بررسی مدیر فعال خواهد شد.",
+          user: safeUser,
+        },
+        { status: 201 }
+      );
+    }
 
     const { password: _, ...safeUser } = newUser;
     return HttpResponse.json({
