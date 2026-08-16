@@ -1,6 +1,7 @@
 'use client';
 
 import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiMessageSquare } from "react-icons/fi";
+import { PiHandPalmLight } from "react-icons/pi";
 
 /**
  * shared BottomBar for presenter and participant
@@ -11,6 +12,8 @@ export default function BottomBar({
   toggleMic: toggleMicProp,
   cameraOn: cameraOnProp,
   toggleCam: toggleCamProp,
+  handRaised: handRaisedProp,
+  toggleHand: toggleHandProp,
   chatOpen,
   setChatOpen,
   mode,
@@ -20,6 +23,8 @@ export default function BottomBar({
   const cameraOn = media?.cameraOn ?? cameraOnProp;
   const toggleMic = media?.toggleMic ?? toggleMicProp;
   const toggleCam = media?.toggleCam ?? toggleCamProp;
+  const handRaised = media?.handRaised ?? handRaisedProp;
+  const toggleHand = media?.toggleHand ?? toggleHandProp;
 
   const handleChatClick = () => {
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
@@ -48,6 +53,15 @@ export default function BottomBar({
       >
         {cameraOn ? <FiVideo size={18} /> : <FiVideoOff size={18} />}
         <span className="text-[9px]">دوربین</span>
+      </button>
+      <button
+        onClick={toggleHand}
+        className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${
+          handRaised ? "text-yellow-600 bg-yellow-50" : "text-gray-700 hover:bg-gray-100"
+        }`}
+      >
+        <PiHandPalmLight size={20} />
+        <span className="text-[9px]">بلند کردن دست</span>
       </button>
       <button
         onClick={handleChatClick}

@@ -7,6 +7,16 @@ import {
   FiEdit2, FiEyeOff, FiUserX, FiMessageSquare
 } from "react-icons/fi";
 
+const AVATAR_COLORS = [
+  "bg-violet-500", "bg-blue-500", "bg-emerald-500", "bg-amber-500",
+  "bg-pink-500", "bg-cyan-500", "bg-orange-500", "bg-fuchsia-500",
+];
+
+function avatarColor(name = "") {
+  const sum = name.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+}
+
 function ParticipantMenu({ participant, onGrant, onRevoke, onKick, onClose }) {
   const menuRef = useRef(null);
 
@@ -208,31 +218,58 @@ export default function Sidebar({
       </div>
 
       {/* chat */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="px-3 py-2 border-b text-xs font-bold flex items-center gap-1.5"><FiMessageSquare size={15} /> گفتگو</div>
-         <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+      <div className="flex-1 flex flex-col min-h-0 bg-white">
+        <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
+            <FiMessageSquare size={13} />
+          </div>
+          <span className="text-xs font-bold text-gray-800">گفتگو</span>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3.5 bg-gray-50/60">
           {messages.map((m) => (
-           <div key={m.id} className="flex gap-1.5">
-              <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[9px] flex-shrink-0">{m.name[0]}</div>
-              <div>
-                <div className="flex gap-1.5 text-[12px] mb-0.5">
-                  <span className={`font-medium ${m.teacher ? "text-blue-600" : "text-gray-800"}`}>{m.name}</span>
-                  <span className="text-gray-400">{m.time}</span>
+            <div key={m.id} className="flex gap-2 items-start">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 ${avatarColor(m.name)}`}>
+                {m.name[0]}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className={`text-[11.5px] font-semibold ${m.teacher ? "text-violet-600" : "text-gray-800"}`}>
+                    {m.name}
+                  </span>
+                  <span className="text-[10px] text-gray-400">{m.time}</span>
                 </div>
-                <p className={`text-[11px] px-2.5 py-1.5 rounded-lg rounded-tr-none ${m.teacher ? "bg-blue-50 text-blue-800" : "bg-gray-50"}`}>{m.text}</p>
+                <p
+                  className={`text-[12px] leading-relaxed px-3 py-2 rounded-2xl rounded-tr-sm max-w-[210px] break-words ${
+                    m.teacher
+                      ? "bg-violet-600 text-white shadow-sm shadow-violet-200"
+                      : "bg-white text-gray-700 border border-gray-100 shadow-sm"
+                  }`}
+                >
+                  {m.text}
+                </p>
               </div>
             </div>
           ))}
         </div>
-        <div className="p-2.5 border-t flex gap-1.5">
-          <input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="پیام خود را وارد کنید..."
-            className="flex-1 px-2.5 py-2 border rounded-xl text-[11px] outline-none focus:border-blue-500"
-          />
-          <button onClick={send} className="w-9 h-9 bg-blue-600 text-white rounded-xl flex items-center justify-center"><FiSend size={13} /></button>
+
+        <div className="p-3 border-t bg-white flex-shrink-0">
+          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-1.5 focus-within:border-violet-400 focus-within:bg-white transition">
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send()}
+              placeholder="پیام خود را بنویسید..."
+              className="flex-1 bg-transparent py-1.5 text-[12px] outline-none placeholder:text-gray-400"
+            />
+            <button
+              onClick={send}
+              disabled={!message?.trim()}
+              className="w-8 h-8 flex-shrink-0 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:hover:bg-blue-600 text-white rounded-full flex items-center justify-center transition"
+            >
+              <FiSend size={13} />
+            </button>
+          </div>
         </div>
       </div>
     </aside>
