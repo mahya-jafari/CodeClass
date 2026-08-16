@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useMemo } from "react";
 import { FiSearch, FiX, FiPlay, FiSquare, FiSlash } from "react-icons/fi";
 import { useGetAdminWebinarsQuery, useUpdateWebinarStatusMutation } from "../../../store/api/adminApis";
@@ -14,14 +13,12 @@ const STATUS_LABELS = {
   ended: "پایان‌یافته",
   cancelled: "لغو شده",
 };
-
 const STATUS_STYLE = {
   upcoming: "bg-blue-100 text-blue-700",
   live: "bg-green-100 text-green-700",
   ended: "bg-gray-100 text-gray-600",
   cancelled: "bg-red-100 text-red-700",
 };
-
 const TABS = [
   { key: "all", label: "همه" },
   { key: "upcoming", label: "برگزار نشده" },
@@ -39,44 +36,33 @@ export default function AdminWebinarsPage() {
   const [updateStatus] = useUpdateWebinarStatusMutation();
 
   const normalize = (text) => (text || "").toLowerCase().trim();
-
   const filtered = useMemo(() => {
     const q = normalize(search);
-    return webinars.filter((w) => {
-      const matchesSearch = !q || normalize(w.title).includes(q) || normalize(w.teacher).includes(q);
-      const matchesTab = tab === "all" || w.status === tab;
-      return matchesSearch && matchesTab;
-    });
+    return webinars.filter((w) =>
+      (!q || normalize(w.title).includes(q) || normalize(w.teacher).includes(q)) &&
+      (tab === "all" || w.status === tab)
+    );
   }, [webinars, search, tab]);
 
   const handleStatusChange = async (id, newStatus) => {
     try {
       await updateStatus({ id, status: newStatus }).unwrap();
-      toast.success('وضعیت وبینار تغییر کرد');
+      toast.success("وضعیت وبینار تغییر کرد");
     } catch (err) {
-      toast.error('خطا در تغییر وضعیت');
+      toast.error("خطا در تغییر وضعیت");
     }
   };
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
-      <AdminSidebar
-        activeMenu={activeMenu}
-        setActiveMenu={setActiveMenu}
-        menuItems={adminMenuItems}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
+      <AdminSidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} menuItems={adminMenuItems} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="flex-1 lg:mr-64 transition-all duration-300">
         <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
-
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">مدیریت وبینارها</h1>
             <p className="text-gray-500 mt-1 text-sm">کلاس‌های زنده و وبینارهای سیستم</p>
           </div>
-
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-100 space-y-3">
               <div className="relative max-w-md">
@@ -88,21 +74,14 @@ export default function AdminWebinarsPage() {
                   placeholder="جستجو بر اساس عنوان یا مدرس..."
                   className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-sm"
                 />
-                {search && (
-                  <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <FiX size={16} />
-                  </button>
-                )}
+                {search && <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><FiX size={16} /></button>}
               </div>
-
               <div className="flex flex-wrap gap-2">
                 {TABS.map((t) => (
                   <button
                     key={t.key}
                     onClick={() => setTab(t.key)}
-                    className={`text-xs font-medium px-3 py-1.5 rounded-full transition ${
-                      tab === t.key ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                    className={`text-xs font-medium px-3 py-1.5 rounded-full transition ${tab === t.key ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                   >
                     {t.label}
                   </button>
@@ -142,31 +121,20 @@ export default function AdminWebinarsPage() {
                         <td className="p-5">
                           {w.status === "upcoming" && (
                             <div className="flex gap-2">
-                              <button
-                                onClick={() => handleStatusChange(w.id, "live")}
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs bg-green-500 text-white hover:bg-green-600 transition"
-                              >
+                              <button onClick={() => handleStatusChange(w.id, "live")} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs bg-green-500 text-white hover:bg-green-600 transition">
                                 <FiPlay size={13} /> شروع
                               </button>
-                              <button
-                                onClick={() => handleStatusChange(w.id, "cancelled")}
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs bg-red-50 text-red-600 hover:bg-red-100 transition"
-                              >
+                              <button onClick={() => handleStatusChange(w.id, "cancelled")} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs bg-red-50 text-red-600 hover:bg-red-100 transition">
                                 <FiSlash size={13} /> لغو
                               </button>
                             </div>
                           )}
                           {w.status === "live" && (
-                            <button
-                              onClick={() => handleStatusChange(w.id, "ended")}
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs bg-gray-700 text-white hover:bg-gray-800 transition"
-                            >
+                            <button onClick={() => handleStatusChange(w.id, "ended")} className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs bg-gray-700 text-white hover:bg-gray-800 transition">
                               <FiSquare size={13} /> پایان پخش
                             </button>
                           )}
-                          {(w.status === "ended" || w.status === "cancelled") && (
-                            <span className="text-xs text-gray-400">بدون عملیات</span>
-                          )}
+                          {(w.status === "ended" || w.status === "cancelled") && <span className="text-xs text-gray-400">بدون عملیات</span>}
                         </td>
                       </tr>
                     ))}

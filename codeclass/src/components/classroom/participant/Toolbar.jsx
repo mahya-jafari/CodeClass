@@ -17,7 +17,6 @@ export default function Toolbar({ wb, mode, setMode, canEdit, onExit }) {
 
   return (
     <header className="h-12 bg-white border-b flex items-center justify-between px-2 md:px-3 flex-shrink-0 gap-1">
-      {/* ابزارها — فقط وقتی canEdit و روی وایت‌برد */}
       <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none min-w-0 flex-1 md:flex-none">
         {canEdit && mode === "whiteboard" && (
           <>

@@ -47,7 +47,7 @@ export default function PresenterClassroom() {
 
   const wb = useWhiteboard(mode);
   const media = useMedia();
-  const chat = useChat(apiMessages); // پیام‌های اولیه از API
+  const chat = useChat(apiMessages); 
   const ide = useIDE();
   const tb = useTextBoxes();
 

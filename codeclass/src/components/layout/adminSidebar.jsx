@@ -19,7 +19,6 @@ export default function AdminSidebar({ activeMenu, setActiveMenu, menuItems, isO
       coupons: "/admin/coupons",
       finance: "/admin/finance",
       reviews: "/admin/reviews",
-      "presenter_approval": "/admin/presenter_approval",
       certificates: "/admin/certificates",
       assignments: "/admin/assignments",
       messages: "/admin/messages",
