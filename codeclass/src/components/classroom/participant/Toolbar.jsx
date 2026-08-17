@@ -53,9 +53,8 @@ export default function Toolbar({ wb, mode, setMode, canEdit, onExit }) {
         )}
       </div>
 
-      {/* سوییچ حالت */}
+      {/* switch mode */}
       <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0">
-        {/* فقط موبایل: تب ویدیو/چت */}
         <button
           onClick={() => setMode("media")}
           className={`md:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
@@ -71,7 +70,7 @@ export default function Toolbar({ wb, mode, setMode, canEdit, onExit }) {
           }`}
         >
           <FiEdit2 size={12} />
-          <span className="hidden sm:inline">وایت‌برد</span>
+          <span className="hidden sm:inline">whiteboard</span>
         </button>
         <button
           onClick={() => setMode("ide")}

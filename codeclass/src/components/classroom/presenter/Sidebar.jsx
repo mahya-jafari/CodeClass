@@ -77,7 +77,7 @@ export default function Sidebar({
   setParticipants,
   toggleParticipantEdit,
   kickParticipant,
-  messages,
+  messages = [],
   message,
   setMessage,
   send,

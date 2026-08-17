@@ -91,7 +91,7 @@ export default function Toolbar({
             }`}
           >
             <FiEdit2 size={12} />
-            <span className="hidden sm:inline">وایت‌برد</span>
+            <span className="hidden sm:inline">whiteboard</span>
           </button>
 
           <button

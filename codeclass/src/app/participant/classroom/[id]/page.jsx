@@ -11,7 +11,8 @@ import IDEPanel, { useIDE } from "@/components/classroom/shared/IDEPanel";
 import BottomBar from "@/components/classroom/shared/BottomBar";
 import NewFileModal from "@/components/classroom/shared/NewFileModal";
 import TextBoxLayer from "@/components/classroom/shared/TextBoxLayer";
-
+import PDFAnnotation from "@/components/classroom/shared/PDFAnnotation";
+import { usePDFAnnotation } from "@/hooks/classroom/UsePDFAnnotation";
 import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
@@ -25,21 +26,23 @@ export default function ParticipantClassroom() {
   const router = useRouter();
   const params = useParams();
   const classId = params?.id || "1";
-
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
   const [canEdit, setCanEdit] = useState(false);
-
   const { data: apiParticipants = [] } = useGetParticipantClassroomParticipantsQuery(classId);
   const { data: apiMessages = [] } = useGetParticipantClassroomMessagesQuery(classId);
-
   const [participants, setParticipants] = useState([]);
-
+  const pdf = usePDFAnnotation(mode === "pdf", canEdit);
+  const [pdfViewMode, setPdfViewMode] = useState(false);
   useEffect(() => {
     if (apiParticipants.length > 0) {
       setParticipants(apiParticipants);
     }
   }, [apiParticipants]);
+
+  useEffect(() => {
+    if (mode !== "pdf") setPdfViewMode(false);
+  }, [mode]);
 
   const wb = useWhiteboard(mode === "media" ? "whiteboard" : mode, canEdit);
   const ide = useIDE(canEdit);
@@ -51,9 +54,12 @@ export default function ParticipantClassroom() {
     <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
       <Toolbar
         wb={wb}
+        pdf={pdf}
         mode={mode}
         setMode={setMode}
         canEdit={canEdit}
+        pdfViewMode={pdfViewMode}
+        setPdfViewMode={setPdfViewMode}
         onExit={() => router.push("/participant/dashboard")}
       />
 
