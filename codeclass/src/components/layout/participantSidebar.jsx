@@ -12,6 +12,7 @@ export default function ParticipantSidebar({ activeMenu, setActiveMenu, menuItem
     setActiveMenu(id);
     const routes = {
       dashboard: "/participant/dashboard",
+      profile: "/participant/profile",
       "my-classes": "/participant/my-classes",
       webinars: "/participant/webinars",
       assignments: "/participant/assignments",
@@ -20,7 +21,6 @@ export default function ParticipantSidebar({ activeMenu, setActiveMenu, menuItem
       certificates: "/participant/certificates",
       messages: "/participant/messages",
       finance: "/participant/finance",
-      settings: "/participant/settings",
     };
     if (routes[id]) router.push(routes[id]);
     if (onClose) onClose();

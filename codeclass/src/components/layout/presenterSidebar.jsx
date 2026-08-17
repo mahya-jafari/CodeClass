@@ -12,6 +12,7 @@ export default function Sidebar({ activeMenu, setActiveMenu, menuItems, isOpen, 
     setActiveMenu(id);
     const routes = {
       dashboard: "/presenter/dashboard",
+      profile: "/presenter/profile",
       "my-classes": "/presenter/my-classes",
       "new-class": "/presenter/new-class",
       webinars: "/presenter/webinars",
@@ -19,7 +20,6 @@ export default function Sidebar({ activeMenu, setActiveMenu, menuItems, isOpen, 
       calendar: "/presenter/calendar",
       messages: "/presenter/messages",
       finance: "/presenter/finance",
-      settings: "/presenter/settings",
     };
     if (routes[id]) router.push(routes[id]);
     if (onClose) onClose();

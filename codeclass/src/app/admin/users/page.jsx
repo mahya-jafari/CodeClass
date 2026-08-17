@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import { FiSearch, FiX, FiTrash2, FiShield, FiPhone, FiCalendar, FiCheck, FiX as FiXIcon } from "react-icons/fi";
+import { FiSearch, FiX, FiTrash2, FiShield, FiCheck, FiX as FiXIcon } from "react-icons/fi";
 import { toast } from "react-toastify";
 import {
   useGetAdminUsersQuery,
@@ -13,6 +13,7 @@ import {
 import AdminSidebar from "@/components/layout/adminSidebar";
 import AdminHeader from "@/components/layout/adminHeader";
 import { adminMenuItems } from "@/components/layout/adminMenuItems";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 const TABS = [
   ["all", "همه"],
@@ -36,6 +37,7 @@ export default function AdminUsersPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("all");
+  const [deleteId, setDeleteId] = useState(null);
 
   const { data: users = [], isLoading: usersLoading } = useGetAdminUsersQuery();
   const { data: pending = [], isLoading: pendingLoading } = useGetPendingPresentersQuery();
@@ -67,7 +69,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const remove = async id => {
+  const remove = async (id) => {
     if (!confirm("این کاربر برای همیشه حذف بشه؟ این عملیات قابل بازگشت نیست.")) return;
     try {
       await deleteUser(id).unwrap();
@@ -97,6 +99,12 @@ export default function AdminUsersPage() {
   };
 
   const isLoading = usersLoading || pendingLoading;
+
+  const openRejectConfirm = (id) => setDeleteId(id);
+  const handleRejectConfirm = () => {
+    handleReject(deleteId);
+    setDeleteId(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
@@ -144,7 +152,7 @@ export default function AdminUsersPage() {
               <p className="text-center py-12 text-gray-400 text-sm">در حال بارگذاری...</p>
             ) : (
               <>
-                {/* کاربران */}
+                {/* users */}
                 <div className="p-4 border-b border-gray-100">
                   <h2 className="font-medium text-gray-800 mb-3">کاربران</h2>
                   {filteredUsers.length === 0 ? (
@@ -211,8 +219,8 @@ export default function AdminUsersPage() {
                                         {active ? "غیرفعال کردن" : "فعال کردن"}
                                       </button>
                                       <button
-                                        onClick={() => remove(u.id)}
-                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                        onClick={() => openDeleteConfirm(u.id)}
+                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
                                         title="حذف کاربر"
                                       >
                                         <FiTrash2 size={16} />
@@ -229,7 +237,7 @@ export default function AdminUsersPage() {
                   )}
                 </div>
 
-                {/* ارائه‌دهندگان در انتظار */}
+                {/* presenters awaiting approval */}
                 <div className="p-4">
                   <h2 className="font-medium text-gray-800 mb-3">ارائه‌دهندگان در انتظار تأیید</h2>
                   {filteredPending.length === 0 ? (
@@ -278,7 +286,7 @@ export default function AdminUsersPage() {
                                     <FiCheck size={14} /> تأیید
                                   </button>
                                   <button
-                                    onClick={() => handleReject(p.id)}
+                                    onClick={() => openRejectConfirm(p.id)}
                                     className="flex-1 flex items-center justify-center gap-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-xl transition"
                                   >
                                     <FiXIcon size={14} /> رد
@@ -297,6 +305,15 @@ export default function AdminUsersPage() {
           </section>
         </div>
       </main>
+
+      <ConfirmModal
+        open={!!deleteId}
+        title="رد درخواست ارائه‌دهنده"
+        description="آیا مطمئن هستید که می‌خواهید درخواست ارائه‌دهنده شدن را رد کنید؟ کاربر تا وقتی مجدداً بررسی نشه نمی‌تونه وارد بشه."
+        confirmText="رد درخواست"
+        onConfirm={handleRejectConfirm}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

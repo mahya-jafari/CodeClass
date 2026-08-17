@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import { FiBookOpen, FiSearch, FiX, FiCheck, FiTrash2, FiSlash } from "react-icons/fi";
 import { toast } from "react-toastify";
 import {
@@ -11,6 +11,7 @@ import {
 import AdminSidebar from "@/components/layout/adminSidebar";
 import AdminHeader from "@/components/layout/adminHeader";
 import { adminMenuItems } from "@/components/layout/adminMenuItems";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 const TABS = [
   ["all", "همه"],
@@ -29,6 +30,7 @@ export default function AdminClassesPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [deleteId, setDeleteId] = useState(null);
 
   const { data: classes = [], isLoading } = useGetAdminClassesQuery();
   const [updateStatus] = useUpdateClassStatusMutation();
@@ -53,16 +55,14 @@ export default function AdminClassesPage() {
     }
   };
 
-  const approve = id => changeStatus(id, "فعال");
-  const reject = id => changeStatus(id, "غیرفعال");
-  const remove = async id => {
-    if (!confirm("این کلاس برای همیشه حذف بشه؟ این عملیات قابل بازگشت نیست.")) return;
-    try {
-      await deleteClass(id).unwrap();
-      toast.success("کلاس حذف شد");
-    } catch {
-      toast.error("خطا در حذف کلاس");
-    }
+  const approve = (id) => changeStatus(id, "فعال");
+  const reject = (id) => changeStatus(id, "غیرفعال");
+
+  const openDeleteConfirm = (id) => setDeleteId(id);
+  const handleDelete = () => {
+    deleteClass(deleteId).unwrap();
+    toast.success("کلاس حذف شد");
+    setDeleteId(null);
   };
 
   return (
@@ -172,8 +172,8 @@ export default function AdminClassesPage() {
                                 {c.status === "فعال" ? "غیرفعال کردن" : "فعال کردن"}
                               </button>
                               <button
-                                onClick={() => remove(c.id)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                onClick={() => openDeleteConfirm(c.id)}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
                                 title="حذف کلاس"
                               >
                                 <FiTrash2 size={16} />
@@ -190,6 +190,15 @@ export default function AdminClassesPage() {
           </section>
         </div>
       </main>
+
+      <ConfirmModal
+        open={!!deleteId}
+        title="حذف کلاس"
+        description="آیا مطمئن هستید که می‌خواهید این کلاس را برای همیشه حذف کنید؟ این عملیات قابل بازگشت نیست."
+        confirmText="حذف"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }
