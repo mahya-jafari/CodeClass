@@ -43,7 +43,6 @@ export default function BottomBar({
         }`}
       >
         {micOn ? <FiMic size={18} /> : <FiMicOff size={18} />}
-        <span className="text-[9px]">میکروفون</span>
       </button>
       <button
         onClick={toggleCam}
@@ -52,7 +51,6 @@ export default function BottomBar({
         }`}
       >
         {cameraOn ? <FiVideo size={18} /> : <FiVideoOff size={18} />}
-        <span className="text-[9px]">دوربین</span>
       </button>
       <button
         onClick={toggleHand}
@@ -61,7 +59,6 @@ export default function BottomBar({
         }`}
       >
         <PiHandPalmLight size={20} />
-        <span className="text-[9px]">بلند کردن دست</span>
       </button>
       <button
         onClick={handleChatClick}
@@ -72,7 +69,6 @@ export default function BottomBar({
         }`}
       >
         <FiMessageSquare size={18} />
-        <span className="text-[9px]">چت</span>
       </button>
     </div>
   );

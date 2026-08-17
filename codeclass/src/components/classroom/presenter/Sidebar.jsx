@@ -219,9 +219,9 @@ export default function Sidebar({
 
       {/* chat */}
       <div className="flex-1 flex flex-col min-h-0 bg-white">
-        <div className="px-4 py-3 border-b flex items-center gap-2 flex-shrink-0">
-          <div className="w-6 h-6 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
-            <FiMessageSquare size={13} />
+        <div className="px-3 py-2 border-b flex items-center gap-1.5 flex-shrink-0">
+          <div className="rounded-lg text-black-600 flex items-center justify-center">
+            <FiMessageSquare size={15} />
           </div>
           <span className="text-xs font-bold text-gray-800">گفتگو</span>
         </div>

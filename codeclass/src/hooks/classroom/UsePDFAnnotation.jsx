@@ -2,10 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 
-/**
- * shared useWhiteboard for presenter and participant
- */
-export function useWhiteboard(mode, canEdit = true) {
+export function usePDFAnnotation(active, canEdit = true) {
   const canvasRef = useRef(null);
   const drawing = useRef(false);
   const last = useRef({ x: 0, y: 0 });
@@ -21,74 +18,98 @@ export function useWhiteboard(mode, canEdit = true) {
   const save = () => {
     const c = canvasRef.current;
     if (!c) return;
+
     history.current = history.current.slice(0, step.current + 1);
     history.current.push(c.toDataURL());
     step.current++;
   };
 
   useEffect(() => {
-    if (mode !== "whiteboard") return;
+    if (!active) return;
+
     const c = canvasRef.current;
-    if (!c) return;
+    if (!c || !c.parentElement) return;
+
     const ctx = c.getContext("2d");
+
     const resize = () => {
       const img = history.current[step.current];
+
       c.width = c.parentElement.clientWidth;
       c.height = c.parentElement.clientHeight;
+
       if (img) {
         const i = new Image();
         i.onload = () => ctx.drawImage(i, 0, 0);
         i.src = img;
       } else {
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.clearRect(0, 0, c.width, c.height);
         save();
       }
     };
+
     resize();
     window.addEventListener("resize", resize);
+
     return () => window.removeEventListener("resize", resize);
-  }, [mode]);
+  }, [active]);
 
   const pos = (e) => {
     const c = canvasRef.current;
     const r = c.getBoundingClientRect();
+
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const x = (clientX - r.left) * (c.width / r.width);
-    const y = (clientY - r.top) * (c.height / r.height);
-    return { x, y };
+
+    return {
+      x: (clientX - r.left) * (c.width / r.width),
+      y: (clientY - r.top) * (c.height / r.height),
+    };
   };
 
   const start = (e) => {
     if (!canEdit) return;
     if (!["pen", "highlighter", "eraser"].includes(tool)) return;
+
     drawing.current = true;
+
     const p = pos(e);
     last.current = p;
+
     if (tool === "highlighter") {
       const c = canvasRef.current;
-      strokeBase.current = c.getContext("2d").getImageData(0, 0, c.width, c.height);
+
+      strokeBase.current = c
+        .getContext("2d")
+        .getImageData(0, 0, c.width, c.height);
+
       points.current = [p];
     }
   };
 
   const move = (e) => {
     if (!canEdit || !drawing.current) return;
+
     const ctx = canvasRef.current.getContext("2d");
     const p = pos(e);
 
     if (tool === "highlighter") {
       points.current.push(p);
+
       const base = strokeBase.current;
       if (!base) return;
+
       ctx.putImageData(base, 0, 0);
+
       if (points.current.length < 2) return;
+
       ctx.beginPath();
       ctx.moveTo(points.current[0].x, points.current[0].y);
+
       for (let i = 1; i < points.current.length; i++) {
         ctx.lineTo(points.current[i].x, points.current[i].y);
       }
+
       ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = color + "55";
       ctx.lineWidth = size * 8;
@@ -99,6 +120,7 @@ export function useWhiteboard(mode, canEdit = true) {
       ctx.beginPath();
       ctx.moveTo(last.current.x, last.current.y);
       ctx.lineTo(p.x, p.y);
+
       if (tool === "eraser") {
         ctx.globalCompositeOperation = "destination-out";
         ctx.lineWidth = Math.max(size * 5, 26);
@@ -109,73 +131,100 @@ export function useWhiteboard(mode, canEdit = true) {
         ctx.lineWidth = size;
         ctx.lineCap = "round";
       }
+
       ctx.lineJoin = "round";
       ctx.stroke();
+
       last.current = p;
     }
   };
 
   const end = () => {
-    if (drawing.current) {
-      drawing.current = false;
-      points.current = [];
-      strokeBase.current = null;
-      save();
-    }
+    if (!drawing.current) return;
+
+    drawing.current = false;
+    points.current = [];
+    strokeBase.current = null;
+
+    save();
   };
 
   const addText = (e) => {
     if (!canEdit || tool !== "text") return;
+
     const t = prompt("متن را وارد کنید:");
     if (!t) return;
+
     const ctx = canvasRef.current.getContext("2d");
     const p = pos(e);
+
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = color;
     ctx.font = `${size * 6}px sans-serif`;
     ctx.fillText(t, p.x, p.y);
+
     save();
   };
 
   const undo = () => {
     if (!canEdit || step.current <= 0) return;
+
     step.current--;
+
     const img = new Image();
+
     img.onload = () => {
-      const ctx = canvasRef.current.getContext("2d");
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const c = canvasRef.current;
+      const ctx = c.getContext("2d");
+
+      ctx.clearRect(0, 0, c.width, c.height);
       ctx.drawImage(img, 0, 0);
     };
+
     img.src = history.current[step.current];
   };
 
   const redo = () => {
     if (!canEdit || step.current >= history.current.length - 1) return;
+
     step.current++;
+
     const img = new Image();
+
     img.onload = () => {
-      const ctx = canvasRef.current.getContext("2d");
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      const c = canvasRef.current;
+      const ctx = c.getContext("2d");
+
+      ctx.clearRect(0, 0, c.width, c.height);
       ctx.drawImage(img, 0, 0);
     };
+
     img.src = history.current[step.current];
   };
 
   const download = () => {
-    if (!canvasRef.current) return;
+    const c = canvasRef.current;
+    if (!c) return;
+
     const a = document.createElement("a");
-    a.href = canvasRef.current.toDataURL();
-    a.download = "whiteboard.png";
+    a.href = c.toDataURL();
+    a.download = "pdf-annotations.png";
     a.click();
   };
 
   return {
     canvasRef,
-    tool, setTool,
-    color, setColor,
-    size, setSize,
-    undo, redo,
-    start, move, end,
+    tool,
+    setTool,
+    color,
+    setColor,
+    size,
+    setSize,
+    undo,
+    redo,
+    start,
+    move,
+    end,
     addText,
     download,
   };

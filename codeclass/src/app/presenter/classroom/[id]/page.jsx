@@ -13,7 +13,8 @@ import BottomBar from "@/components/classroom/shared/BottomBar";
 import SettingsModal from "@/components/classroom/presenter/SettingsModal";
 import NewFileModal from "@/components/classroom/shared/NewFileModal";
 import TextBoxLayer from "@/components/classroom/shared/TextBoxLayer";
-
+import PDFAnnotation from "@/components/classroom/shared/PDFAnnotation";
+import { usePDFAnnotation } from "@/hooks/classroom/UsePDFAnnotation";
 import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
@@ -32,12 +33,10 @@ export default function PresenterClassroom() {
   const [chatOpen, setChatOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
-
-  // داده‌ها از API
   const { data: apiParticipants = [] } = useGetClassroomParticipantsQuery(classId);
   const { data: apiMessages = [] } = useGetClassroomMessagesQuery(classId);
-
   const [participants, setParticipants] = useState([]);
+  const [pdfViewMode, setPdfViewMode] = useState(false);
 
   useEffect(() => {
     if (apiParticipants.length > 0) {
@@ -45,7 +44,12 @@ export default function PresenterClassroom() {
     }
   }, [apiParticipants]);
 
+  useEffect(() => {
+    if (mode !== "pdf") setPdfViewMode(false);
+  }, [mode]);
+
   const wb = useWhiteboard(mode);
+  const pdf = usePDFAnnotation(mode === "pdf");
   const media = useMedia();
   const chat = useChat(apiMessages); 
   const ide = useIDE();
@@ -67,22 +71,23 @@ export default function PresenterClassroom() {
   return (
     <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
       <Toolbar
-        undo={wb.undo}
-        redo={wb.redo}
-        tool={wb.tool}
-        setTool={wb.setTool}
-        color={wb.color}
-        setColor={wb.setColor}
-        size={wb.size}
-        setSize={wb.setSize}
-        canvasRef={wb.canvasRef}
+        undo={mode === "pdf" ? pdf.undo : wb.undo}
+        redo={mode === "pdf" ? pdf.redo : wb.redo}
+        tool={mode === "pdf" ? pdf.tool : wb.tool}
+        setTool={mode === "pdf" ? pdf.setTool : wb.setTool}
+        color={mode === "pdf" ? pdf.color : wb.color}
+        setColor={mode === "pdf" ? pdf.setColor : wb.setColor}
+        size={mode === "pdf" ? pdf.size : wb.size}
+        setSize={mode === "pdf" ? pdf.setSize : wb.setSize}
+        canvasRef={mode === "pdf" ? pdf.canvasRef : wb.canvasRef}
         recording={media.recording}
         toggleRec={media.toggleRec}
         mode={mode}
         setMode={setMode}
-        setPdfUrl={setPdfUrl}
         onOpenSettings={() => setSettingsOpen(true)}
         onExit={() => router.push("/presenter/dashboard")}
+        pdfViewMode={pdfViewMode}
+        setPdfViewMode={setPdfViewMode}
       />
 
       <div className="flex-1 flex overflow-hidden min-h-0">
@@ -141,19 +146,42 @@ export default function PresenterClassroom() {
               {mode === "whiteboard" && <Whiteboard wb={wb} />}
 
               {mode === "pdf" && (
-                pdfUrl ? (
-                  <iframe src={pdfUrl} className="flex-1 w-full border-0" title="pdf" />
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
-                    <FiUpload size={36} />
-                    <p className="text-sm">PDF آپلود کنید</p>
-                  </div>
-                )
+                <div className="relative flex-1 min-h-0 overflow-hidden">
+                  {pdfUrl ? (
+                    <>
+                      <iframe
+                        src={pdfUrl}
+                        className="absolute inset-0 w-full h-full border-0"
+                        title="pdf"
+                      />
+
+                      <PDFAnnotation
+                        annotation={pdf}
+                        viewMode={pdfViewMode}
+                      />
+                    </>
+                  ) : (
+                    <label className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 gap-3 cursor-pointer">
+                      <FiUpload size={36} />
+                      <p className="text-sm">برای آپلود PDF کلیک کنید</p>
+
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setPdfUrl(URL.createObjectURL(file));
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
               )}
 
               {mode === "ide" && <IDEPanel ide={ide} />}
 
-              {(mode === "whiteboard" || mode === "pdf") && (
+              {mode === "whiteboard" && (
                 <TextBoxLayer
                   boxes={tb.boxes}
                   selectedId={tb.selectedId}

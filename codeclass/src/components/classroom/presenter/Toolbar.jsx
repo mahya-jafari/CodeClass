@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
   FiRotateCcw, FiRotateCw, FiEdit2, FiSquare, FiTrash2, FiType,
   FiDownload, FiCircle, FiFileText, FiCode, FiSettings, FiPhoneOff, FiVideo,
-  FiZoomIn, FiZoomOut, FiMaximize, FiMinimize,
+  FiMaximize, FiMinimize, FiEye,
 } from "react-icons/fi";
 
 function ToolBtn({ id, icon, title, tool, setTool }) {
@@ -35,17 +35,16 @@ export default function Toolbar({
   toggleRec,
   mode,
   setMode,
-  setPdfUrl,
   onOpenSettings,
   onExit,
   zoom: zoomProp,
   onZoomChange,
+  pdfViewMode,
+  setPdfViewMode,
 }) {
-  const [internalZoom, setInternalZoom] = useState(100);
-  const zoom = zoomProp ?? internalZoom;
-  const setZoom = onZoomChange ?? setInternalZoom;
 
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const showTools = mode === "whiteboard" || mode === "pdf";
 
   useEffect(() => {
     const handleChange = () => setIsFullscreen(!!document.fullscreenElement);
@@ -60,9 +59,6 @@ export default function Toolbar({
       document.exitFullscreen?.();
     }
   }, []);
-
-  const zoomIn = () => setZoom(Math.min(zoom + 10, 200));
-  const zoomOut = () => setZoom(Math.max(zoom - 10, 50));
 
   const downloadCanvas = () => {
     if (!canvasRef.current) return;
@@ -97,26 +93,16 @@ export default function Toolbar({
             <FiEdit2 size={12} />
             <span className="hidden sm:inline">وایت‌برد</span>
           </button>
-          <label
-            className={`hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${
+
+          <button
+            onClick={() => setMode("pdf")}
+            className={`hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium ${
               mode === "pdf" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"
             }`}
           >
             <FiFileText size={12} />
             <span className="hidden sm:inline">PDF</span>
-            <input
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) {
-                  setPdfUrl(URL.createObjectURL(f));
-                  setMode("pdf");
-                }
-              }}
-            />
-          </label>
+          </button>
           <button
             onClick={() => setMode("ide")}
             className={`flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs font-medium ${
@@ -128,7 +114,7 @@ export default function Toolbar({
           </button>
         </div>
 
-        {/* right actions: zoom, fullscreen, settings, exit */}
+        {/* right actions: fullscreen, settings, exit */}
         <div className="flex items-center justify-end gap-0.5 md:gap-1.5 flex-shrink-0">
 
           <button
@@ -161,7 +147,7 @@ export default function Toolbar({
 
       {/* left vertical tools panel */}
       <div className="fixed top-1/2 -translate-y-1/2 left-6 bg-gray-100 rounded-2xl flex flex-col items-center py-3 gap-1 z-20 w-14">
-        {mode === "whiteboard" && (
+        {showTools && (
           <>
             <button onClick={undo} title="واگرد" className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0">
               <FiRotateCcw size={16} />
@@ -208,6 +194,24 @@ export default function Toolbar({
             </button>
 
             <div className="w-8 h-px bg-gray-200 my-1 flex-shrink-0" />
+          </>
+        )}
+
+        {mode === "pdf" && (
+          <>
+            <button
+              onClick={() => setPdfViewMode(!pdfViewMode)}
+              title={pdfViewMode ? "فعال کردن ابزارها" : "مشاهده و کنترل PDF"}
+              className={`p-2 rounded-lg ${
+                pdfViewMode
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <FiEye size={16} />
+            </button>
+
+            <div className="w-8 h-px bg-gray-200 my-1" />
           </>
         )}
 

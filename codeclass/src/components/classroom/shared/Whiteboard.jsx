@@ -19,7 +19,7 @@ export default function Whiteboard({
   const addText = wb?.addText ?? addTextProp;
 
   return (
-    <div className="flex-1 relative">
+    <div className="absolute inset-0">
       <canvas
         ref={canvasRef}
         className={`absolute inset-0 w-full h-full ${
