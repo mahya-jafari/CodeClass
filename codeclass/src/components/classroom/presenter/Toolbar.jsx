@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   FiRotateCcw, FiRotateCw, FiEdit2, FiSquare, FiTrash2, FiType,
-  FiDownload, FiCircle, FiFileText, FiCode, FiSettings, FiPhoneOff, FiVideo,
+  FiCircle, FiFileText, FiCode, FiSettings, FiPhoneOff, FiVideo,
   FiMaximize, FiMinimize, FiEye, FiChevronLeft, FiChevronRight, FiRefreshCw,
 } from "react-icons/fi";
 import { FaLaptopCode } from "react-icons/fa";
@@ -62,14 +62,6 @@ export default function Toolbar({
       document.exitFullscreen?.();
     }
   }, []);
-
-  const downloadCanvas = () => {
-    if (!canvasRef.current) return;
-    const a = document.createElement("a");
-    a.href = canvasRef.current.toDataURL();
-    a.download = "whiteboard.png";
-    a.click();
-  };
 
   return (
     <>
@@ -221,14 +213,6 @@ export default function Toolbar({
                     </div>
                   </div>
                 )}
-
-                <button
-                  onClick={downloadCanvas}
-                  title="دانلود"
-                  className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0"
-                >
-                  <FiDownload size={16} />
-                </button>
 
                 <div className="w-8 h-px bg-gray-200 my-1 flex-shrink-0" />
               </>

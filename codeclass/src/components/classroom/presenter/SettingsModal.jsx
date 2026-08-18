@@ -14,6 +14,13 @@ export default function SettingsModal({ open, onClose }) {
         </div>
         <div className="space-y-4 text-sm">
           <label className="flex items-center justify-between"><span>میکروفون با ورود</span><input type="checkbox" className="accent-blue-600" /></label>
+          <label className="flex items-center justify-between">
+            <span>دوربین هنگام ورود</span>
+            <input
+              type="checkbox"
+              className="accent-blue-600"
+            />
+          </label>
           <label className="flex items-center justify-between"><span>اعلان پیام جدید</span><input type="checkbox" defaultChecked className="accent-blue-600" /></label>
           <label className="flex items-center justify-between">
             <span>کیفیت ویدیو</span>

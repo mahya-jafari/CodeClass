@@ -1,95 +1,159 @@
 'use client';
 
+import { useState, useEffect, useCallback } from "react";
 import {
-  FiRotateCcw, FiRotateCw, FiEdit2, FiSquare, FiTrash2, FiType,
-  FiDownload, FiCode, FiPhoneOff, FiVideo,
+  FiRotateCcw, FiRotateCw, FiEdit2, 
+  FiCode, FiPhoneOff, FiVideo, FiFileText,
+  FiMaximize, FiMinimize, FiSettings,
 } from "react-icons/fi";
+import { FaLaptopCode } from "react-icons/fa";
 
-const TOOLS = [
-  { id: "pen", icon: <FiEdit2 size={15} /> },
-  { id: "highlighter", icon: <FiSquare size={15} /> },
-  { id: "eraser", icon: <FiTrash2 size={15} /> },
-  { id: "text", icon: <FiType size={15} /> },
-];
+export default function Toolbar({
+  wb,
+  pdf,
+  mode,
+  setMode,
+  canEdit,
+  onExit,
+  onOpenSettings,
+  pdfViewMode,
+  setPdfViewMode,
+}) {
+  const [fullscreen, setFullscreen] = useState(false);
 
-export default function Toolbar({ wb, mode, setMode, canEdit, onExit }) {
-  const { tool, setTool, color, setColor, size, setSize, undo, redo, download } = wb;
+  const showTools = mode === "whiteboard" || mode === "pdf";
+
+  useEffect(() => {
+    const fn = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", fn);
+    return () => document.removeEventListener("fullscreenchange", fn);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    document.fullscreenElement
+      ? document.exitFullscreen?.()
+      : document.documentElement.requestFullscreen?.();
+  }, []);
+
+  const w = wb || {};
+  const p = pdf || {};
 
   return (
-    <header className="h-12 bg-white border-b flex items-center justify-between px-2 md:px-3 flex-shrink-0 gap-1">
-      <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none min-w-0 flex-1 md:flex-none">
-        {canEdit && mode === "whiteboard" && (
-          <>
-            <button onClick={undo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0">
-              <FiRotateCcw size={15} />
-            </button>
-            <button onClick={redo} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0">
-              <FiRotateCw size={15} />
-            </button>
-            <div className="w-px h-5 bg-gray-200 mx-1 flex-shrink-0" />
-            {TOOLS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTool(t.id)}
-                className={`p-2 rounded-lg flex-shrink-0 ${
-                  tool === t.id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {t.icon}
-              </button>
-            ))}
-            {["pen", "highlighter", "text"].includes(tool) && (
-              <div className="flex items-center gap-1 mr-1 flex-shrink-0">
-                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-6 h-6 rounded border-0 cursor-pointer" />
-                <input type="range" min="1" max="12" value={size} onChange={(e) => setSize(+e.target.value)} className="w-12 md:w-14" />
-              </div>
-            )}
-          </>
-        )}
-        {mode === "whiteboard" && (
-          <button onClick={download} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg flex-shrink-0" title="ذخیره">
-            <FiDownload size={15} />
+    <>
+      {/* Top bar */}
+      <header className="h-12 bg-white border-b grid grid-cols-3 items-center px-2 md:px-3 flex-shrink-0 z-20">
+
+        {/* Right - Logo */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
+            <FaLaptopCode size={22} />
+          </div>
+          <span className="text-xl font-bold text-gray-800">
+            CodeClass
+          </span>
+        </div>
+
+        {/* Center - Modes */}
+        <div className="flex items-center justify-center gap-1 bg-gray-100 rounded-xl p-1 mx-auto">
+
+          <button
+            onClick={() => setMode("media")}
+            className={`md:hidden p-1.5 rounded-lg ${
+              mode === "media"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600"
+            }`}
+          >
+            <FiVideo size={12} />
           </button>
-        )}
-      </div>
 
-      {/* switch mode */}
-      <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-shrink-0">
-        <button
-          onClick={() => setMode("media")}
-          className={`md:hidden flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium ${
-            mode === "media" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"
-          }`}
-        >
-          <FiVideo size={12} />
-        </button>
-        <button
-          onClick={() => setMode("whiteboard")}
-          className={`flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs font-medium ${
-            mode === "whiteboard" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"
-          }`}
-        >
-          <FiEdit2 size={12} />
-          <span className="hidden sm:inline">whiteboard</span>
-        </button>
-        <button
-          onClick={() => setMode("ide")}
-          className={`flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs font-medium ${
-            mode === "ide" ? "bg-white text-blue-600 shadow-sm" : "text-gray-600"
-          }`}
-        >
-          <FiCode size={12} />
-          <span className="hidden sm:inline">IDE</span>
-        </button>
-      </div>
+          <button
+            onClick={() => setMode("whiteboard")}
+            className={`flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs ${
+              mode === "whiteboard"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600"
+            }`}
+          >
+            <FiEdit2 size={12} />
+            <span className="hidden sm:inline">whiteboard</span>
+          </button>
 
-      <button
-        onClick={onExit}
-        className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-2.5 md:px-3 py-1.5 rounded-xl text-xs font-medium flex-shrink-0"
-      >
-        <FiPhoneOff size={13} />
-        <span className="hidden sm:inline">خروج از کلاس</span>
-      </button>
-    </header>
+          <button
+            onClick={() => setMode("pdf")}
+            className={`hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs ${
+              mode === "pdf"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600"
+            }`}
+          >
+            <FiFileText size={12} />
+            <span>PDF</span>
+          </button>
+
+          <button
+            onClick={() => setMode("ide")}
+            className={`flex items-center gap-1 px-2 md:px-2.5 py-1.5 rounded-lg text-xs ${
+              mode === "ide"
+                ? "bg-white text-blue-600 shadow-sm"
+                : "text-gray-600"
+            }`}
+          >
+            <FiCode size={12} />
+            <span className="hidden sm:inline">IDE</span>
+          </button>
+        </div>
+
+        {/* Left - Actions */}
+        <div className="flex items-center justify-end gap-1.5">
+
+          {canEdit && showTools && (
+            <>
+              <button
+                onClick={mode === "pdf" ? p.redo : w.redo}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                title="ازنو"
+              >
+                <FiRotateCw size={15} />
+              </button>
+
+              <button
+                onClick={mode === "pdf" ? p.undo : w.undo}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                title="واگرد"
+              >
+                <FiRotateCcw size={15} />
+              </button>
+
+              <div className="w-px h-5 bg-gray-200" />
+            </>
+          )}
+
+          <button
+            onClick={toggleFullscreen}
+            title={fullscreen ? "خروج از تمام‌صفحه" : "تمام‌صفحه"}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            {fullscreen ? <FiMinimize size={15} /> : <FiMaximize size={15} />}
+          </button>
+
+          <button
+            onClick={onOpenSettings}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            title="تنظیمات"
+          >
+            <FiSettings size={15} />
+          </button>
+
+          <button
+            onClick={onExit}
+            className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-xl text-[11px] md:text-xs"
+          >
+            <FiPhoneOff size={13} />
+            <span className="hidden sm:inline">خروج از کلاس</span>
+          </button>
+        </div>
+      </header>
+    </>
   );
 }

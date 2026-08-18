@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { FiUpload } from "react-icons/fi";
 
@@ -14,11 +14,13 @@ import SettingsModal from "@/components/classroom/presenter/SettingsModal";
 import NewFileModal from "@/components/classroom/shared/NewFileModal";
 import TextBoxLayer from "@/components/classroom/shared/TextBoxLayer";
 import PDFAnnotation from "@/components/classroom/shared/PDFAnnotation";
+
 import { usePDFAnnotation } from "@/hooks/classroom/UsePDFAnnotation";
 import { useWhiteboard } from "@/hooks/classroom/UseWhiteboard";
 import { useMedia } from "@/hooks/classroom/UseMedia";
 import { useChat } from "@/hooks/classroom/UseChat";
 import { useTextBoxes } from "@/hooks/classroom/UseTextBoxes";
+
 import {
   useGetClassroomParticipantsQuery,
   useGetClassroomMessagesQuery,
@@ -26,69 +28,115 @@ import {
 
 export default function PresenterClassroom() {
   const router = useRouter();
-  const params = useParams();
-  const classId = params?.id || "1";
+  const { id = "1" } = useParams();
 
   const [mode, setMode] = useState("whiteboard");
   const [chatOpen, setChatOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
-  const { data: apiParticipants = [] } = useGetClassroomParticipantsQuery(classId);
-  const { data: apiMessages = [] } = useGetClassroomMessagesQuery(classId);
-  const [participants, setParticipants] = useState([]);
   const [pdfViewMode, setPdfViewMode] = useState(false);
+  const [participants, setParticipants] = useState([]);
+
+  // ابزارهای مشترک Whiteboard و PDF
+  const [toolColor, setToolColor] = useState("#000000");
+  const [toolSize, setToolSize] = useState(3);
+
+  const { data: apiParticipants = [] } =
+    useGetClassroomParticipantsQuery(id);
+
+  const { data: apiMessages = [] } =
+    useGetClassroomMessagesQuery(id);
+
+  const wb = useWhiteboard(mode);
+  const pdf = usePDFAnnotation(mode === "pdf");
+  const media = useMedia();
+  const chat = useChat(apiMessages);
+  const ide = useIDE();
+  const tb = useTextBoxes();
 
   useEffect(() => {
-    if (apiParticipants.length > 0) {
+    if (apiParticipants.length) {
       setParticipants(apiParticipants);
     }
   }, [apiParticipants]);
 
   useEffect(() => {
-    if (mode !== "pdf") setPdfViewMode(false);
+    if (mode !== "pdf") {
+      setPdfViewMode(false);
+    }
   }, [mode]);
 
-  const wb = useWhiteboard(mode);
-  const pdf = usePDFAnnotation(mode === "pdf");
-  const media = useMedia();
-  const chat = useChat(apiMessages); 
-  const ide = useIDE();
-  const tb = useTextBoxes();
+  const active = mode === "pdf" ? pdf : wb;
 
   const toggleParticipantEdit = (id, value) => {
     setParticipants((ps) =>
-      ps.map((p) => {
-        if (p.id !== id || p.isSelf) return p;
-        return { ...p, canEdit: value };
-      })
+      ps.map((p) =>
+        p.id === id && !p.isSelf
+          ? { ...p, canEdit: value }
+          : p
+      )
     );
   };
 
   const kickParticipant = (id) => {
-    setParticipants((ps) => ps.filter((p) => p.id !== id));
+    setParticipants((ps) =>
+      ps.filter((p) => p.id !== id)
+    );
   };
 
-  // clears the loaded PDF (and its view-mode state) so the empty-state
-  // upload prompt shows again and the user can pick a different file;
-  // also wipes annotations so old strokes don't show up on the next PDF
-  const handleRemovePdf = () => {
+  const removePdf = () => {
     pdf.reset();
     setPdfUrl(null);
     setPdfViewMode(false);
   };
 
+  const sidebarProps = {
+    chatOpen,
+    videoSrc: media.videoSrc,
+    setVideoSrc: media.setVideoSrc,
+    videoRef: media.videoRef,
+    playing: media.playing,
+    setPlaying: media.setPlaying,
+    cameraOn: media.cameraOn,
+    setCameraOn: media.setCameraOn,
+    camRef: media.camRef,
+    participants,
+    setParticipants,
+    toggleParticipantEdit,
+    kickParticipant,
+    messages: chat.messages,
+    message: chat.message,
+    setMessage: chat.setMessage,
+    send: chat.send,
+  };
+
+  const textBoxProps = {
+    boxes: tb.boxes,
+    selectedId: tb.selectedId,
+    setSelectedId: tb.setSelectedId,
+    updateBox: tb.updateBox,
+    removeBox: tb.removeBox,
+    addBox: tb.addBox,
+    color: toolColor,
+    size: toolSize,
+    enabled: true,
+  };
+
   return (
-    <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
+    <div
+      className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden"
+      dir="rtl"
+    >
       <Toolbar
-        undo={mode === "pdf" ? pdf.undo : wb.undo}
-        redo={mode === "pdf" ? pdf.redo : wb.redo}
-        tool={mode === "pdf" ? pdf.tool : wb.tool}
-        setTool={mode === "pdf" ? pdf.setTool : wb.setTool}
-        color={mode === "pdf" ? pdf.color : wb.color}
-        setColor={mode === "pdf" ? pdf.setColor : wb.setColor}
-        size={mode === "pdf" ? pdf.size : wb.size}
-        setSize={mode === "pdf" ? pdf.setSize : wb.setSize}
-        canvasRef={mode === "pdf" ? pdf.canvasRef : wb.canvasRef}
+        undo={active.undo}
+        redo={active.redo}
+        tool={active.tool}
+        setTool={active.setTool}
+        color={toolColor}
+        setColor={setToolColor}
+        size={toolSize}
+        setSize={setToolSize}
+        canvasRef={active.canvasRef}
         recording={media.recording}
         toggleRec={media.toggleRec}
         mode={mode}
@@ -97,83 +145,76 @@ export default function PresenterClassroom() {
         onExit={() => router.push("/presenter/dashboard")}
         pdfViewMode={pdfViewMode}
         setPdfViewMode={setPdfViewMode}
-        onRemovePdf={handleRemovePdf}
+        onRemovePdf={removePdf}
       />
 
       <div className="flex-1 flex overflow-hidden min-h-0">
+
+        {/* Desktop Sidebar */}
         <div className="hidden md:flex h-full">
-          <Sidebar
-            chatOpen={chatOpen}
-            videoSrc={media.videoSrc}
-            setVideoSrc={media.setVideoSrc}
-            videoRef={media.videoRef}
-            playing={media.playing}
-            setPlaying={media.setPlaying}
-            cameraOn={media.cameraOn}
-            setCameraOn={media.setCameraOn}
-            camRef={media.camRef}
-            participants={participants}
-            setParticipants={setParticipants}
-            toggleParticipantEdit={toggleParticipantEdit}
-            kickParticipant={kickParticipant}
-            messages={chat.messages}
-            message={chat.message}
-            setMessage={chat.setMessage}
-            send={chat.send}
-          />
+          <Sidebar {...sidebarProps} />
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
+
           <div className="flex-1 p-2 md:p-3 overflow-hidden min-h-0">
             <div className="h-full bg-white rounded-xl md:rounded-2xl border shadow-sm overflow-hidden flex flex-col relative">
 
+              {/* Mobile Media */}
               {mode === "media" && (
-                <div className="md:hidden flex-1 flex flex-col min-h-0">
+                <div className="md:hidden flex-1 min-h-0">
                   <Sidebar
-                    chatOpen={true}
-                    videoSrc={media.videoSrc}
-                    setVideoSrc={media.setVideoSrc}
-                    videoRef={media.videoRef}
-                    playing={media.playing}
-                    setPlaying={media.setPlaying}
-                    cameraOn={media.cameraOn}
-                    setCameraOn={media.setCameraOn}
-                    camRef={media.camRef}
-                    participants={participants}
-                    setParticipants={setParticipants}
-                    toggleParticipantEdit={toggleParticipantEdit}
-                    kickParticipant={kickParticipant}
-                    messages={chat.messages}
-                    message={chat.message}
-                    setMessage={chat.setMessage}
-                    send={chat.send}
+                    {...sidebarProps}
+                    chatOpen
                     fullHeight
                     compact
                   />
                 </div>
               )}
 
-              {mode === "whiteboard" && <Whiteboard wb={wb} />}
+              {/* Whiteboard */}
+              {mode === "whiteboard" && (
+                <>
+                  <Whiteboard wb={wb} />
 
+                  <TextBoxLayer
+                    {...textBoxProps}
+                    tool={wb.tool}
+                  />
+                </>
+              )}
+
+              {/* PDF */}
               {mode === "pdf" && (
                 <div className="relative flex-1 min-h-0 overflow-hidden">
+
                   {pdfUrl ? (
                     <>
                       <iframe
                         src={pdfUrl}
-                        className="absolute inset-0 w-full h-full border-0"
                         title="pdf"
+                        className="absolute inset-0 w-full h-full border-0"
                       />
 
                       <PDFAnnotation
                         annotation={pdf}
                         viewMode={pdfViewMode}
                       />
+
+                      {!pdfViewMode && (
+                        <TextBoxLayer
+                          {...textBoxProps}
+                          tool={pdf.tool}
+                        />
+                      )}
                     </>
                   ) : (
-                    <label className="absolute inset-0 flex flex-col items-center justify-center text-gray-400 gap-3 cursor-pointer">
+                    <label className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-400 cursor-pointer">
                       <FiUpload size={36} />
-                      <p className="text-sm">برای آپلود PDF کلیک کنید</p>
+
+                      <p className="text-sm">
+                        برای آپلود PDF کلیک کنید
+                      </p>
 
                       <input
                         type="file"
@@ -181,7 +222,12 @@ export default function PresenterClassroom() {
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) setPdfUrl(URL.createObjectURL(file));
+
+                          if (file) {
+                            setPdfUrl(
+                              URL.createObjectURL(file)
+                            );
+                          }
                         }}
                       />
                     </label>
@@ -189,22 +235,11 @@ export default function PresenterClassroom() {
                 </div>
               )}
 
-              {mode === "ide" && <IDEPanel ide={ide} />}
-
-              {mode === "whiteboard" && (
-                <TextBoxLayer
-                  boxes={tb.boxes}
-                  selectedId={tb.selectedId}
-                  setSelectedId={tb.setSelectedId}
-                  updateBox={tb.updateBox}
-                  removeBox={tb.removeBox}
-                  addBox={tb.addBox}
-                  tool={wb.tool}
-                  color={wb.color}
-                  size={wb.size}
-                  enabled
-                />
+              {/* IDE */}
+              {mode === "ide" && (
+                <IDEPanel ide={ide} />
               )}
+
             </div>
           </div>
 
@@ -213,6 +248,8 @@ export default function PresenterClassroom() {
             toggleMic={media.toggleMic}
             cameraOn={media.cameraOn}
             toggleCam={media.toggleCam}
+            handRaised={media.handRaised}
+            toggleHand={media.toggleHand}
             chatOpen={chatOpen}
             setChatOpen={setChatOpen}
             mode={mode}
@@ -221,21 +258,38 @@ export default function PresenterClassroom() {
         </div>
       </div>
 
-      <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
 
       <ConfirmModal
         open={!!ide.fileModal}
-        title={ide.fileModal?.type === "confirmDelete" ? "آیا مطمئن هستید؟" : "خطا"}
+        title={
+          ide.fileModal?.type === "confirmDelete"
+            ? "آیا مطمئن هستید؟"
+            : "خطا"
+        }
         description={
           ide.fileModal?.type === "confirmDelete"
             ? `حذف فایل «${ide.fileModal?.name}»؟`
             : ide.fileModal?.message
         }
-        confirmText={ide.fileModal?.type === "confirmDelete" ? "حذف" : "متوجه شدم"}
+        confirmText={
+          ide.fileModal?.type === "confirmDelete"
+            ? "حذف"
+            : "متوجه شدم"
+        }
         cancelText="انصراف"
-        showCancel={ide.fileModal?.type === "confirmDelete"}
-        danger={true}
-        onConfirm={ide.fileModal?.type === "confirmDelete" ? ide.confirmDeleteFile : () => ide.setFileModal(null)}
+        showCancel={
+          ide.fileModal?.type === "confirmDelete"
+        }
+        danger
+        onConfirm={
+          ide.fileModal?.type === "confirmDelete"
+            ? ide.confirmDeleteFile
+            : () => ide.setFileModal(null)
+        }
         onCancel={() => ide.setFileModal(null)}
       />
 

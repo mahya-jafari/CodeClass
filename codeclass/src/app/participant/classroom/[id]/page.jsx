@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-
+import SettingsModal from "@/components/classroom/participant/SettingsModal";
 import Toolbar from "@/components/classroom/participant/Toolbar";
 import Sidebar from "@/components/classroom/participant/Sidebar";
 import Whiteboard from "@/components/classroom/shared/Whiteboard";
@@ -34,6 +34,8 @@ export default function ParticipantClassroom() {
   const [participants, setParticipants] = useState([]);
   const pdf = usePDFAnnotation(mode === "pdf", canEdit);
   const [pdfViewMode, setPdfViewMode] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
   useEffect(() => {
     if (apiParticipants.length > 0) {
       setParticipants(apiParticipants);
@@ -60,6 +62,7 @@ export default function ParticipantClassroom() {
         canEdit={canEdit}
         pdfViewMode={pdfViewMode}
         setPdfViewMode={setPdfViewMode}
+        onOpenSettings={() => setSettingsOpen(true)}
         onExit={() => router.push("/participant/dashboard")}
       />
 
@@ -158,6 +161,11 @@ export default function ParticipantClassroom() {
           onClose={() => ide.setNewFileOpen(false)}
         />
       )}
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 }
