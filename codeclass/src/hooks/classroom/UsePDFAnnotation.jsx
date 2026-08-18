@@ -212,6 +212,22 @@ export function usePDFAnnotation(active, canEdit = true) {
     a.click();
   };
 
+  // wipes all drawn annotations and clears undo/redo history — used when the
+  // underlying PDF is removed/replaced so old strokes don't carry over
+  const reset = () => {
+    history.current = [];
+    step.current = -1;
+
+    const c = canvasRef.current;
+    if (c) {
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0, 0, c.width, c.height);
+    }
+
+    // re-establish a fresh blank baseline so undo has a clean starting point
+    save();
+  };
+
   return {
     canvasRef,
     tool,
@@ -227,5 +243,6 @@ export function usePDFAnnotation(active, canEdit = true) {
     end,
     addText,
     download,
+    reset,
   };
 }

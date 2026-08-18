@@ -68,6 +68,15 @@ export default function PresenterClassroom() {
     setParticipants((ps) => ps.filter((p) => p.id !== id));
   };
 
+  // clears the loaded PDF (and its view-mode state) so the empty-state
+  // upload prompt shows again and the user can pick a different file;
+  // also wipes annotations so old strokes don't show up on the next PDF
+  const handleRemovePdf = () => {
+    pdf.reset();
+    setPdfUrl(null);
+    setPdfViewMode(false);
+  };
+
   return (
     <div className="h-[100dvh] bg-[#F0F4F8] flex flex-col overflow-hidden" dir="rtl">
       <Toolbar
@@ -88,6 +97,7 @@ export default function PresenterClassroom() {
         onExit={() => router.push("/presenter/dashboard")}
         pdfViewMode={pdfViewMode}
         setPdfViewMode={setPdfViewMode}
+        onRemovePdf={handleRemovePdf}
       />
 
       <div className="flex-1 flex overflow-hidden min-h-0">
