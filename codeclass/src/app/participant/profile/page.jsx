@@ -54,7 +54,7 @@ export default function ParticipantProfile() {
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="max-w-3xl mx-auto">
             <div className="mb-6 sm:mb-8 text-center sm:text-right">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">تنظیمات</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">پروفایل من</h1>
               <p className="text-gray-500 mt-1 text-sm">مدیریت حساب کاربری</p>
             </div>
 

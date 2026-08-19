@@ -6,12 +6,13 @@ import ParticipantSidebar from "@/components/layout/participantSidebar";
 import ParticipantHeader from "@/components/layout/participantHeader";
 import { participantMenuItems } from "@/components/layout/participantMenuItems";
 import { useGetParticipantClassesQuery } from "../../../store/api/participantApis";
+import { useRouter } from "next/navigation";
 
 export default function ParticipantMyClasses() {
   const [activeMenu, setActiveMenu] = useState("my-classes");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const { data: classes = [] } = useGetParticipantClassesQuery();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex" dir="rtl">
@@ -67,7 +68,12 @@ export default function ParticipantMyClasses() {
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${cls.status === "در حال برگزاری" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                     {cls.status}
                   </span>
-                  <button className="text-sm text-blue-600 hover:underline font-medium cursor-pointer">ورود به کلاس</button>
+                  <button
+                    onClick={() => router.push(`/participant/classroom/1`)}
+                    className="text-sm text-blue-600 hover:underline font-medium cursor-pointer"
+                  >
+                    ورود به کلاس
+                  </button>
                 </div>
               </div>
             ))}
