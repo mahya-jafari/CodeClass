@@ -253,14 +253,14 @@ export default function Sidebar({
           ))}
         </div>
 
-        <div className="p-3 border-t bg-white flex-shrink-0">
+        <div className="p-2 border-t bg-white flex-shrink-0">
           <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-1.5 focus-within:border-blue-400 focus-within:bg-white transition">
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="پیام خود را بنویسید..."
-              className="flex-1 bg-transparent py-1.5 text-[12px] outline-none placeholder:text-gray-500"
+              className="flex-1 bg-transparent py-1.5 mt-1 text-[12px] outline-none placeholder:text-gray-500"
             />
             <button
               onClick={send}

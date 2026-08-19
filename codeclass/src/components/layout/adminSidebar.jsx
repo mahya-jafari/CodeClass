@@ -45,12 +45,12 @@ export default function AdminSidebar({ activeMenu, setActiveMenu, menuItems, isO
       >
         <div className="h-20 flex items-center justify-between px-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
               <FaLaptopCode size={22} />
             </div>
             <div>
               <span className="text-xl font-bold text-gray-800">CodeClass</span>
-              <p className="text-[10px] text-indigo-600 font-medium">پنل مدیریت</p>
+              <p className="text-[10px] text-blue-600 font-medium">پنل مدیریت</p>
             </div>
           </div>
           <button onClick={onClose} className="lg:hidden p-2 text-gray-500 hover:text-gray-700">
@@ -65,14 +65,14 @@ export default function AdminSidebar({ activeMenu, setActiveMenu, menuItems, isO
               onClick={() => handleMenuClick(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all relative ${
                 activeMenu === item.id
-                  ? "bg-indigo-50 text-indigo-600"
+                  ? "bg-blue-50 text-blue-600"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
               {item.icon}
               <span>{item.label}</span>
               {item.badge && (
-                <span className="absolute left-4 bg-indigo-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="absolute left-4 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                   {item.badge}
                 </span>
               )}

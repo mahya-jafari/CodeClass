@@ -37,7 +37,6 @@ export default function PresenterClassroom() {
   const [pdfViewMode, setPdfViewMode] = useState(false);
   const [participants, setParticipants] = useState([]);
 
-  // ابزارهای مشترک Whiteboard و PDF
   const [toolColor, setToolColor] = useState("#000000");
   const [toolSize, setToolSize] = useState(3);
 

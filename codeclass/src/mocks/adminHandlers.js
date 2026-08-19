@@ -4,41 +4,21 @@ const API = "/api";
 
 let adminWebinars = [
   { id: 1, title: "آشنایی با React 19", teacher: "استاد علی محمدی", registered: 87, status: "upcoming", date: "۱۴۰۵/۰۲/۱۵" },
-  { id: 2, title: "وبینار JavaScript پیشرفته", teacher: "استاد سارا رضایی", registered: 142, status: "live", date: "۱۴۰۵/۰۲/۱۰" },
-  { id: 3, title: "مسیر شغلی فرانت‌اند", teacher: "استاد علی محمدی", registered: 256, status: "ended", date: "۱۴۰۵/۰۱/۲۰" },
 ];
 
 let adminClasses = [
   { id: 1, title: "آموزش React از صفر تا پیشرفته", teacher: "استاد علی محمدی", students: 24, status: "فعال", date: "۱۴۰۵/۰۱/۱۰" },
   { id: 2, title: "جامع JavaScript", teacher: "استاد سارا رضایی", students: 31, status: "فعال", date: "۱۴۰۵/۰۱/۱۸" },
-  { id: 3, title: "Python برای مبتدیان", teacher: "استاد علی محمدی", students: 0, status: "در انتظار تأیید", date: "۱۴۰۵/۰۲/۰۵" },
-  { id: 4, title: "طراحی UI/UX با Figma", teacher: "استاد نگار کریمی", students: 12, status: "غیرفعال", date: "۱۴۰۴/۱۱/۲۲" },
 ];
 
-// NOTE: previously this was a static object returned inline. It's now a
-// mutable record so PUT /admin/profile can actually persist changes for
-// the mock server's lifetime (resets on page reload, same as the others).
 let adminMessages = [
   { id: 1, name: "سارا احمدی", message: "مشکل در ورود به کلاس آنلاین دارم، لطفا راهنمایی کنید.", time: "۱ ساعت پیش", unread: true, status: "pending" },
-  { id: 2, name: "علی محمدی", message: "درخواست افزایش ظرفیت وبینار جاوااسکریپت پیشرفته.", time: "۳ ساعت پیش", unread: true, status: "pending" },
-  { id: 3, name: "نگار رضایی", message: "سوالی در مورد نحوه دریافت گواهینامه داشتم.", time: "دیروز", unread: false, status: "resolved" },
-  { id: 4, name: "محمد حسینی", message: "امکان بازگشت وجه برای دوره‌ای که خریداری کردم وجود داره؟", time: "۲ روز پیش", unread: false, status: "pending" },
 ];
 
 let messageThreads = {
   1: [
     { id: 1, text: "سلام، من نمی‌تونم وارد کلاس آنلاین بشم، خطای اتصال میده.", fromMe: false, time: "۰۹:۱۲" },
     { id: 2, text: "سلام، لطفاً نام مرورگر و سیستم عاملتون رو بفرمایید.", fromMe: true, time: "۰۹:۲۰" },
-  ],
-  2: [
-    { id: 1, text: "سلام، امکانش هست ظرفیت وبینار جاوااسکریپت رو افزایش بدید؟", fromMe: false, time: "۱۱:۰۰" },
-  ],
-  3: [
-    { id: 1, text: "سلام، گواهینامه من کی صادر میشه؟", fromMe: false, time: "۱۰:۰۰" },
-    { id: 2, text: "با سلام، گواهینامه شما صادر شده و در پنلتون قابل مشاهده‌ست.", fromMe: true, time: "۱۰:۱۵" },
-  ],
-  4: [
-    { id: 1, text: "سلام، دوره‌ای که خریدم مناسبم نبود، امکان بازگشت وجه هست؟", fromMe: false, time: "۰۸:۴۰" },
   ],
 };
 
@@ -53,14 +33,11 @@ let adminProfile = {
 
 let adminCertificates = [
   { id: 1, userName: "سارا احمدی", course: "گواهینامه UI/UX با Figma", score: 95, status: "صادر شده" },
-  { id: 2, userName: "علی محمدی", course: "گواهینامه HTML & CSS", score: 88, status: "صادر شده" },
-  { id: 3, userName: "نگار رضایی", course: "گواهینامه JavaScript پیشرفته", score: 92, status: "در انتظار" },
   { id: 4, userName: "محمد حسینی", course: "گواهینامه Python برای مبتدیان", score: 74, status: "در انتظار" },
 ];
 
 let adminCoupons = [
   { id: 1, code: "WELCOME20", type: "percent", value: 20, maxUses: 100, usedCount: 34, expiresAt: "۱۴۰۵/۰۴/۰۱", status: "فعال" },
-  { id: 2, code: "SUMMER50K", type: "fixed", value: 50000, maxUses: 50, usedCount: 12, expiresAt: "۱۴۰۵/۰۵/۱۰", status: "فعال" },
   { id: 3, code: "OLDCODE10", type: "percent", value: 10, maxUses: 200, usedCount: 200, expiresAt: "۱۴۰۴/۱۲/۰۱", status: "منقضی شده" },
   { id: 4, code: "VIP15", type: "percent", value: 15, maxUses: 30, usedCount: 5, expiresAt: "۱۴۰۵/۰۳/۲۰", status: "غیرفعال" },
 ];
@@ -68,8 +45,6 @@ let adminCoupons = [
 let adminReviews = [
   { id: 1, userName: "سارا احمدی", className: "آموزش React از صفر تا پیشرفته", rating: 5, comment: "دوره فوق‌العاده‌ای بود، توضیحات مدرس خیلی روان و کاربردی بود.", date: "۱۴۰۵/۰۲/۱۲", status: "در انتظار" },
   { id: 2, userName: "نگار رضایی", className: "جامع JavaScript", rating: 4, comment: "محتوا خوب بود ولی سرعت پیشرفت یه‌کم زیاد بود برای مبتدی‌ها.", date: "۱۴۰۵/۰۲/۱۰", status: "تأیید شده" },
-  { id: 3, userName: "محمد حسینی", className: "طراحی UI/UX با Figma", rating: 1, comment: "این دوره اصلاً ارزش پول رو نداشت، محتوا خیلی قدیمی بود.", date: "۱۴۰۵/۰۲/۰۸", status: "در انتظار" },
-  { id: 4, userName: "علی محمدی", className: "Python برای مبتدیان", rating: 5, comment: "بهترین دوره‌ای که تا حالا دیدم!", date: "۱۴۰۵/۰۱/۲۵", status: "مخفی شده" },
 ];
 
 export const handlers = [
@@ -104,12 +79,9 @@ export const handlers = [
         { id: 1, name: "سارا احمدی", role: "شرکت‌کننده", date: "۱۴۰۵/۰۲/۱۰", status: "فعال" },
         { id: 2, name: "علی محمدی", role: "ارائه‌دهنده", date: "۱۴۰۵/۰۲/۰۹", status: "فعال" },
         { id: 3, name: "نگار رضایی", role: "شرکت‌کننده", date: "۱۴۰۵/۰۲/۰۸", status: "غیرفعال" },
-        { id: 4, name: "محمد حسینی", role: "ارائه‌دهنده", date: "۱۴۰۵/۰۲/۰۷", status: "فعال" },
         ],
         recentClasses: [
         { id: 1, title: "آموزش React از صفر تا پیشرفته", teacher: "استاد علی محمدی", students: 24, status: "فعال" },
-        { id: 2, title: "جامع JavaScript", teacher: "استاد سارا رضایی", students: 31, status: "فعال" },
-        { id: 3, title: "Python برای مبتدیان", teacher: "استاد علی محمدی", students: 18, status: "در انتظار تأیید" },
         ],
         pendingWithdrawals: [
         { id: 1, name: "استاد علی محمدی", amount: 2500000, date: "۱۴۰۵/۰۲/۱۰" },

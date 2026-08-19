@@ -50,7 +50,7 @@ export const presenterApis = baseApi.injectEndpoints({
       invalidatesTags: ["Classes"],
     }),
 
-    // ===== Settings / Profile =====
+    // ===== Profile =====
     getProfile: builder.query({
       query: () => "/presenter/profile",
       providesTags: ["User"],

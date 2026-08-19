@@ -35,7 +35,7 @@ export default function BottomBar({
   };
 
   return (
-    <div className="h-14 bg-white border-t flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-3 flex-shrink-0">
+    <div className="h-16 bg-white border-t flex items-center justify-center gap-2 sm:gap-3 px-2 sm:px-3 flex-shrink-0">
       <button
         onClick={toggleMic}
         className={`flex flex-col items-center p-2 rounded-xl min-w-[48px] ${
